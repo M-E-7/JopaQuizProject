@@ -8,6 +8,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 - Phase 1 is done except the install/offline check below. GitHub Pages deploy works (live site confirmed 2026-10-18).
 - Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill (with an independent blind-answer check and an append mode for existing sets) are done. First real .docx quiz made (EPSO); waiting on the user's review and a real .csv. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
 - Test files from the dry run (fictional): `documents/Prirucnik zastite.docx`, `documents/Pojmovi cp1250.csv`, `documents/Pitanja.csv` (+ `documents/extracted/`) and `quizzes/test-*.json`. Handy as sample imports for Phase 3; delete them whenever.
+- Phase 3 started: the platform layer (`app/src/platform/`, IndexedDB via `idb`) is done; next is "Import quiz from file", the first UI that uses it.
 - **Waiting on the user:** install the app on Windows and Android and test offline (first task below). It doesn't block other work, so carry on with Phase 2 and ask how it went now and then.
 
 ## Phase 1 — Project setup
@@ -27,8 +28,6 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 3 — Core app
 
-- [ ] Platform interface for storage and file import (`QuizStorage` etc.) so a native wrapper can be swapped in later
-- [ ] IndexedDB implementation of the storage interface; request persistent storage (`navigator.storage.persist()`)
 - [ ] "Import quiz from file": `<input type="file" accept=".json">` → `parseQuizJson()` from `app/src/quiz/validate.ts` → store in IndexedDB; show errors/warnings to the user
   - Update `GUIDE.txt` section 5 (currently marked "not built yet")
   - First time Ajv is in the production bundle: check that `npm run build` output works in `app-preview`, and note the bundle size
@@ -39,8 +38,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 - [ ] Score tracking: count of correct and wrong answers during a quiz
 - [ ] End-of-quiz summary (score, percentage, list of missed questions)
 - [ ] Shuffle question order and option order
-- [ ] Save score history per quiz set locally (date, right, wrong, missed question ids)
-  - Version the IndexedDB schema from the start so later app updates can migrate stored data (see "Updating the app" in `CLAUDE.md`)
+- [ ] Save score history per quiz set locally: `platform.storage.addRun()` with per-question results; right/wrong/missed derived by small pure functions
   - On re-import of a set, ignore (don't show, don't count) history entries for question ids that are in the set's `removedQuestionIds` or no longer exist
 - [ ] "Retry missed questions" mode (uses the saved history)
 

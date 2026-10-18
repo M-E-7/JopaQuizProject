@@ -4,6 +4,12 @@ Newest first.
 
 ## 2026-10-18
 
+- Platform interface + IndexedDB storage (two Phase 3 tasks done together, user's choice)
+  - `app/src/platform/types.ts`: `QuizStorage` (list/get/save/delete quiz sets, add/list runs, request persistence) and `FileImport` (`pickQuizFile()` → `{ name, text }` or null); `index.ts` exports the `platform` object the UI uses
+  - `web/idb-storage.ts`: `idb` library (user's choice), database `jopa-quiz` v1, stores `quizSets` (key `quiz.id`) and `runs` (auto id, index `byQuiz`); upgrade written as `oldVersion < N` steps for future migrations; closes its connection when a newer version needs to upgrade; first save requests `navigator.storage.persist()`. Replace keeps history, delete removes the set's runs
+  - History stores per-question results per run (user's choice), so removed questions can be dropped and totals recounted
+  - `web/file-import.ts`: detached `<input type="file" accept=".json,application/json">`
+  - Verified: build + lint pass; in the dev server with the example quiz: save/list (4 questions)/get round-trip, two runs listed oldest first with results intact, replace with a new title kept one set and both runs, data survived a reload, delete removed the set and only its runs, `requestPersistence()` returned false without error (expected in a non-installed tab), deleting the database while open wasn't blocked (connection closes); file picker cancel → null. No console errors. Not yet tested: a real file pick (import task) and Android's picker filtering `.json`
 - Appending questions to an existing quiz set without duplicates (append mode of the `generate-quiz` skill)
   - Decisions (user): same skill with an append section (no separate skill); duplicates avoided by a coverage script plus Claude comparing wording; when the document changed, existing questions are fixed in place (same id) or removed
   - Format: optional `removedQuestionIds` (non-breaking, `formatVersion` stays 1) so removed ids are never reused; validator errors if a removed id is still used, warns on two questions with the same text. Schema, `schema/README.md`, example quiz and `types.ts` updated together
