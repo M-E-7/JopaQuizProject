@@ -4,6 +4,11 @@ Newest first.
 
 ## 2026-10-18
 
+- Wrote the quiz validator (shared module + command line), user's choice of architecture
+  - `app/src/quiz/validate.ts`: `parseQuizJson()` / `validateQuizSet()` — Ajv 2020 (+ `ajv-formats` for `date-time`) against `schema/quiz-set.schema.json`, then cross-field rules: unique question/source ids, `sourceId` exists, unused sources (warning), location type vs. source type (warning), options differing only in case/spacing (warning). Friendly errors for non-quiz files, newer `formatVersion`, invalid JSON, BOM tolerated; `location` oneOf errors reduced to the shape named by `type`
+  - `app/src/quiz/types.ts`: TypeScript types for format v1
+  - `app/scripts/validate-quiz.ts` + `npm run validate-quiz -- <files|folders>`: run directly by Node 24 type stripping, exit 1 on errors; `tsconfig.scripts.json` added; Vite `server.fs.allow` extended to `../schema`; deploy workflow now also triggers on schema changes
+  - Verified: build + lint pass; example quiz OK; 18 broken variants (wrong option count, duplicates, unknown/unused source, bad location, typo property, bad date, newer version, not a quiz, broken JSON, BOM, missing file) each give the expected error/warning; in the dev server the same module validates in the browser, and `documents/` stays blocked (403). Not yet checked: Ajv inside the production bundle (the app doesn't import the validator until Phase 3)
 - Added the app version label: small muted footer `2026-10-18 · a5a8217` (UTC build date · short commit hash)
   - Injected via Vite `define` in `app/vite.config.ts` (`__BUILD_DATE__`, `__COMMIT__`): `GITHUB_SHA` in CI, `git rev-parse --short HEAD` locally, `dev` fallback; types in `app/src/build-info.d.ts`
   - Versioning rule (user's choice): no manual version number; `version` in `app/package.json` stays unused

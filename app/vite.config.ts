@@ -18,6 +18,8 @@ export default defineConfig({
   // Served from https://m-e-7.github.io/JopaQuizProject/ (GitHub Pages project site).
   // Used in dev and preview too, so local URLs match production.
   base: '/JopaQuizProject/',
+  // The quiz validator imports ../schema/quiz-set.schema.json; let the dev server read it.
+  server: { fs: { allow: ['.', '../schema'] } },
   // Version label shown in the footer, to see which build a device is running.
   define: {
     __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),

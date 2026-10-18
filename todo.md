@@ -6,7 +6,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 ## Where we are
 
 - Phase 1 is done except the install/offline check below. GitHub Pages deploy works (live site confirmed 2026-10-18).
-- Version label (footer: build date · commit) added, not yet committed/deployed at the time of writing.
+- Phase 2 started: the quiz validator is done (`npm run validate-quiz`, shared with the app's future import). Next: document ingestion.
 - **Waiting on the user:** install the app on Windows and Android and test offline (first task below). It doesn't block other work, so carry on with Phase 2 and ask how it went now and then.
 
 ## Phase 1 — Project setup
@@ -18,7 +18,6 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 2 — Question generation
 
-- [ ] Write a validation script: JSON Schema check against `schema/quiz-set.schema.json` plus the cross-field rules listed in `schema/README.md` (unique question/source ids, every `sourceId` exists, unused sources warned)
 - [ ] Document ingestion (pluggable, one reader per format so new formats can be added later)
   - .docx → headings + paragraphs, keeping the heading path for references
   - .csv → header + rows, keeping row numbers for references
@@ -36,7 +35,8 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 - [ ] Platform interface for storage and file import (`QuizStorage` etc.) so a native wrapper can be swapped in later
 - [ ] IndexedDB implementation of the storage interface; request persistent storage (`navigator.storage.persist()`)
-- [ ] "Import quiz from file": `<input type="file" accept=".json">` → validate against the schema → store in IndexedDB
+- [ ] "Import quiz from file": `<input type="file" accept=".json">` → `parseQuizJson()` from `app/src/quiz/validate.ts` → store in IndexedDB; show errors/warnings to the user
+  - First time Ajv is in the production bundle: check that `npm run build` output works in `app-preview`, and note the bundle size
 - [ ] List imported quiz sets; delete or replace a quiz set (re-import of the same id)
 - [ ] Question screen: question text + 4 options
 - [ ] Answer feedback: mark right/wrong, highlight the correct option, show the explanation

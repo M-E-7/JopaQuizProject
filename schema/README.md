@@ -55,13 +55,24 @@ Example: [`examples/example-quiz.json`](examples/example-quiz.json).
 
 For CSV rows the `quote` is written as `Column: value | Column: value`.
 
-## Checked by the validation script, not the schema
+## Validation
 
-JSON Schema can't express these, so the validation script (Phase 2) checks them:
+```bash
+npm --prefix app run validate-quiz -- quizzes/my-quiz.json   # from the repo root
+npm run validate-quiz -- ../quizzes                          # from app/: every .json in a folder
+```
+
+The script ([`app/scripts/validate-quiz.ts`](../app/scripts/validate-quiz.ts)) and the app's file import share the same code ([`app/src/quiz/validate.ts`](../app/src/quiz/validate.ts)). It prints one line per file plus each problem, and exits with 1 if any file has errors. Warnings don't fail a file.
+
+First the file is checked against the schema. JSON Schema can't express the rules below, so they're checked afterwards, once the schema check passes:
 
 - question ids are unique; source ids are unique
 - every `reference.sourceId` exists in `sources`
-- every source is referenced by at least one question (warning only)
+- every source is referenced by at least one question (warning)
+- `location.type` fits the source type: `row` for csv, `page` for pdf, `section` for docx/md/txt (warning)
+- options that differ only in case or spacing, e.g. `Zone B` / `zone b` (warning; exact duplicates are a schema error)
+
+A file whose `formatVersion` is newer than the validator knows gets a single "made for a newer app" error.
 
 ## Versioning
 

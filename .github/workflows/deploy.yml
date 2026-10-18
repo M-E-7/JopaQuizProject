@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - 'app/**'
+      - 'schema/quiz-set.schema.json' # bundled into the app by the quiz validator
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
