@@ -65,6 +65,15 @@ npm run generate-pwa-assets  # regenerate PNG/ICO icons in public/ after editing
 
 - `.claude/launch.json` defines `app-dev` (dev server, port 5173) and `app-preview` (production build, port 4173) for Claude's browser preview. Vite `base` is `/JopaQuizProject/` everywhere (dev, preview, production), so after starting either one navigate to `/JopaQuizProject/` — the bare origin returns 404. The service worker only runs in the production build, so test PWA/offline behaviour with `npm run build` + `app-preview`.
 
+## Deploying
+
+- `.github/workflows/deploy.yml` runs on every push to `main` that touches `app/**` or the workflow itself (or manually via "Run workflow" in the Actions tab).
+- Steps: `npm ci` → `npm run lint` → `npm run build` → upload `app/dist` → deploy to GitHub Pages. A lint or type error stops the deploy.
+- One-time repo setup (owner): Settings → Pages → Source: **GitHub Actions**.
+- Changes to docs, `schema/` or task files don't trigger a deploy.
+- Devices pick up the new version on the next app launch/reload (service worker `autoUpdate`).
+- On Windows, stop the dev/preview server before `npm ci` — it locks files in `node_modules` and the install fails half-way.
+
 ## PWA setup
 
 - `vite-plugin-pwa` (config in `app/vite.config.ts`): web manifest, Workbox service worker (`generateSW`) that precaches the whole app shell, so the app works fully offline.

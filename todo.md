@@ -5,10 +5,8 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 1 — Project setup
 
-- [ ] Add a GitHub Actions workflow that builds `app/` and deploys it to GitHub Pages
-  - User: in repo `M-E-7/JopaQuizProject` → Settings → Pages, set Source to "GitHub Actions", then push
 - [ ] Verify the deployed app installs and works offline on Windows (Edge) and Android (Chrome)
-- [ ] Document deploy steps in `CLAUDE.md` (dev/build commands are already there)
+  - User first: repo `M-E-7/JopaQuizProject` → Settings → Pages → Source: "GitHub Actions", then push and wait for the "Deploy to GitHub Pages" run to go green
 
 ## Phase 2 — Question generation
 

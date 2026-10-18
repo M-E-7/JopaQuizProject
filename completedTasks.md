@@ -4,6 +4,10 @@ Newest first.
 
 ## 2026-10-18
 
+- Added GitHub Actions deploy workflow `.github/workflows/deploy.yml` and documented deploying in `CLAUDE.md`
+  - Push to `main` touching `app/**` (or manual run) → `npm ci`, lint, build → GitHub Pages
+  - Uses the current official action majors: checkout v7, setup-node v7 (Node 24, npm cache), configure-pages v6, upload-pages-artifact v5, deploy-pages v5
+  - Verified locally: YAML parses, the same `npm ci` → lint → build steps pass from a clean install. The workflow itself has not run on GitHub yet.
 - Set Vite `base` to `/JopaQuizProject/` for GitHub Pages (repo `M-E-7/JopaQuizProject` → https://m-e-7.github.io/JopaQuizProject/)
   - Verified: all asset/icon/manifest URLs, manifest `start_url`/`scope` and service-worker scope use the prefix; app loads and works offline under `/JopaQuizProject/` in the preview build
 - Added PWA support with `vite-plugin-pwa` 2
