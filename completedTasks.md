@@ -4,6 +4,11 @@ Newest first.
 
 ## 2026-10-18
 
+- Scaffolded the app in `app/` (create-vite 9, `react-ts` template: Vite 8, React 19, TypeScript 6, oxlint)
+  - Package renamed to `jopa-quiz`; Vite demo content, assets and the duplicate `app/.gitignore` removed
+  - Placeholder "JopaQuiz" page with light/dark theme tokens and a simple "?" favicon
+  - Added `.claude/launch.json` (`app-dev` on port 5173); dev/build commands documented in `CLAUDE.md`
+  - Verified: `npm run build` and `npm run lint` pass, 0 vulnerabilities, page renders in the dev server with no console errors
 - Created folder structure and `.gitignore`
   - `documents/` and `quizzes/` with READMEs; all other content in them is gitignored (verified with `git check-ignore`)
   - `.gitignore` also covers `node_modules/`, `dist/`, `dev-dist/`, `.env*`, `*.local`, logs, `.claude/settings.local.json`, OS clutter

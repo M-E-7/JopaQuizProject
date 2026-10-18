@@ -5,13 +5,12 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 1 — Project setup
 
-- [ ] Scaffold a Vite React + TypeScript app in `app/`
 - [ ] Add `vite-plugin-pwa`: web app manifest, app icons, offline caching
 - [ ] Set Vite `base` to `/<repo-name>/` for GitHub Pages
 - [ ] Add a GitHub Actions workflow that builds `app/` and deploys it to GitHub Pages
   - User: create the public GitHub repo, push, and enable Pages (source: GitHub Actions)
 - [ ] Verify the deployed app installs and works offline on Windows (Edge) and Android (Chrome)
-- [ ] Document dev/build/deploy commands in `CLAUDE.md`
+- [ ] Document deploy steps in `CLAUDE.md` (dev/build commands are already there)
 
 ## Phase 2 — Question generation
 
