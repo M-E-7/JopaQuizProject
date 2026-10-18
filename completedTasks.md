@@ -8,7 +8,10 @@ Newest first.
   - `QuizList.tsx`: Delete button next to Start (`aria-label` "Delete <title>"); on narrow screens both buttons wrap below the title, right-aligned
   - `App.tsx`: Delete opens `ConfirmDialog` "Delete <title> (N questions) from this device? Its score history is deleted too…" (Delete / Keep it) → `platform.storage.deleteQuizSet()` (already existed: set + runs in one transaction) → list reloads; a failure shows an error panel
   - `ConfirmDialog.tsx`: optional `danger` prop → confirm button `.button.danger`; new `--on-wrong` colour token (white in light, dark text in dark mode for contrast)
-  - Verified: build + lint pass; dev server with two test sets and a stored run: Esc and "Keep it" change nothing; Delete removes the set from the list and storage and its run (`listRuns` → 0), the other set stays; phone width 375px light (long title wraps, buttons below) and desktop dark; no console errors from the app. Not tested: on real devices
+  - Verified: build + lint pass; dev server with two test sets and a stored run: Esc and "Keep it" change nothing; Delete removes the set from the list and storage and its run (`listRuns` → 0), the other set stays; phone width 375px light (long title wraps, buttons below) and desktop dark; no console errors from the app. Not yet tried on real devices (open task in `todo.md`)
+- Verify the deployed app installs and works offline on Windows (Edge) and Android (Chrome)
+  - Pages enabled, deploy workflow green, https://m-e-7.github.io/JopaQuizProject/ loads
+  - Verified (user): installed on Windows and Android, works offline on both; importing a real file with the file picker works on both
 - Question screen + answer feedback (two Phase 3 tasks done together, user's choice)
   - Decisions (user): one tap answers at once (no Check step); a Start button per quiz in the list (Delete will go next to it); Back (browser / Android) returns to the list
   - `app/src/App.tsx`: list ↔ quiz screens via `history.pushState({ quizId })` (no router, URL unchanged); Back or Quit mid-quiz with answers opens "Leave this quiz?" (Leave / Keep going) and keeps the quiz entry; a reload mid-quiz reopens the quiz at question 1

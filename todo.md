@@ -5,20 +5,15 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Where we are
 
-- Phase 1 is done except the install/offline check below. GitHub Pages deploy works (live site confirmed 2026-10-18).
+- Phase 1 is done: deployed on GitHub Pages, installed and working offline on Windows and Android, file import works on both (2026-10-18).
 - Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill (with an independent blind-answer check and an append mode for existing sets) are done. First real .docx quiz made (EPSO), regenerated as practice items after the user's review (the skill now picks fact questions or practice items by document kind); waiting on the user's review and a real .csv. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
 - Test files from the dry run (fictional): `documents/Prirucnik zastite.docx`, `documents/Pojmovi cp1250.csv`, `documents/Pitanja.csv` (+ `documents/extracted/`) and `quizzes/test-*.json`. Handy as sample imports; delete them whenever.
-- Phase 3: platform layer (`app/src/platform/`, IndexedDB via `idb`), "Import quiz from file" (with the quiz list and replace) and the question screen with answer feedback are done — quizzes can be played (file order, nothing saved yet) and deleted (with their history, after a confirmation). Next: show the source reference (location + quote) after answering. Once deployed, the user can import and play the EPSO quiz on their devices.
-- **Waiting on the user:** offline check on Windows (installed there), install + offline check on Android (first task below). It doesn't block other work, so carry on with Phase 2 and ask how it went now and then.
+- Phase 3: platform layer (`app/src/platform/`, IndexedDB via `idb`), "Import quiz from file" (with the quiz list and replace) and the question screen with answer feedback are done — quizzes can be played (file order, nothing saved yet) and deleted (with their history, after a confirmation). Next: show the source reference (location + quote) after answering.
+- **Waiting on the user:** trying Delete on the devices once it's deployed (first Phase 3 task). It doesn't block other work, so skip it and ask how it went now and then.
 
 ## Phase 1 — Project setup
 
-- [ ] Verify the deployed app installs and works offline on Windows (Edge) and Android (Chrome)
-  - While on the devices (user): import a real file with the picker (the browser pane can't open native file dialogs), incl. that Android shows .json files from Downloads/Drive, and try Delete
-  - Done: Pages enabled, deploy workflow green, https://m-e-7.github.io/JopaQuizProject/ loads (2026-10-18)
-  - Installed on Windows (user confirmed 2026-10-18)
-  - Still to do (user): offline check on Windows; install on Android + offline check (airplane mode)
-  - After the version-label commit is deployed, the footer hash on each device should match the latest commit on `main` (after two launches)
+All done.
 
 ## Phase 2 — Question generation
 
@@ -30,6 +25,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 3 — Core app
 
+- [ ] Try Delete on the deployed app on Windows and Android (user; checked in the browser pane only so far)
 - [ ] Show the source reference for the question (location + quoted passage / row)
 - [ ] Score tracking: count of correct and wrong answers during a quiz
 - [ ] End-of-quiz summary (score, percentage, list of missed questions)
