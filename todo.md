@@ -5,10 +5,6 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 0 — Decisions
 
-- [ ] **Choose the tech stack** (JS/TS family; must run on Windows and Android, personal use, no store publishing)
-  - Compare candidates: PWA (installable web app), Capacitor (web app → Android APK; PWA or Electron for Windows), Tauri 2 (Windows + Android), React Native (+ React Native Windows)
-  - Criteria: one codebase for both platforms, runtime file picker for importing quiz JSON, reliable local storage for score history, easy APK sideloading, dev tooling on Windows, how easy it is for Claude to build/test
-  - Record the decision and reasoning in `CLAUDE.md`
 - [ ] **Define the question file format** (JSON)
   - Quiz-set metadata: id, title, source document (file name + type), language, created date, format version
   - Question fields: id, question text, 4 options, index of the correct option, short explanation
@@ -22,11 +18,14 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 1 — Project setup
 
-- [ ] Create folder structure (e.g. `documents/` for source docs, `quizzes/` for generated JSON, `schema/`, `app/` for the application)
-- [ ] Scaffold the app with the chosen stack
-- [ ] Verify a "hello world" build runs on Windows
-- [ ] Verify a "hello world" build installs and runs on Android (sideloaded APK)
-- [ ] Document build/run commands for both platforms in `CLAUDE.md`
+- [ ] Create folder structure (`documents/`, `quizzes/`, `schema/`, `app/`) and a `.gitignore` covering `documents/`, `quizzes/`, `node_modules/`, `dist/`
+- [ ] Scaffold a Vite React + TypeScript app in `app/`
+- [ ] Add `vite-plugin-pwa`: web app manifest, app icons, offline caching
+- [ ] Set Vite `base` to `/<repo-name>/` for GitHub Pages
+- [ ] Add a GitHub Actions workflow that builds `app/` and deploys it to GitHub Pages
+  - User: create the public GitHub repo, push, and enable Pages (source: GitHub Actions)
+- [ ] Verify the deployed app installs and works offline on Windows (Edge) and Android (Chrome)
+- [ ] Document dev/build/deploy commands in `CLAUDE.md`
 
 ## Phase 2 — Question generation
 
@@ -46,7 +45,9 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 3 — Core app
 
-- [ ] "Import quiz from file": file picker → validate against the schema → store locally
+- [ ] Platform interface for storage and file import (`QuizStorage` etc.) so a native wrapper can be swapped in later
+- [ ] IndexedDB implementation of the storage interface; request persistent storage (`navigator.storage.persist()`)
+- [ ] "Import quiz from file": `<input type="file" accept=".json">` → validate against the schema → store in IndexedDB
 - [ ] List imported quiz sets; delete or replace a quiz set (re-import of the same id)
 - [ ] Question screen: question text + 4 options
 - [ ] Answer feedback: mark right/wrong, highlight the correct option, show the explanation
@@ -59,6 +60,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 4 — Nice to have
 
+- [ ] App update notice ("new version available" → reload)
 - [ ] Choose number of questions per run / filter by topic
 - [ ] Statistics per quiz set over time
 - [ ] Layout that works well on both phone and desktop window sizes
