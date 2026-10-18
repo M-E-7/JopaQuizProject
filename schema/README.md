@@ -33,7 +33,8 @@ Example: [`examples/example-quiz.json`](examples/example-quiz.json).
       },
       "tags": ["ppe"]                     // optional
     }
-  ]
+  ],
+  "removedQuestionIds": ["q0005"]         // optional, ids of removed questions (never reused)
 }
 ```
 
@@ -41,7 +42,8 @@ Example: [`examples/example-quiz.json`](examples/example-quiz.json).
 
 - **Exactly 4 options**, all different, **exactly one correct** (`correctIndex` 0–3). The app shuffles the display order, so the position in the file doesn't matter to the player. The generator still varies it.
 - **Every question has an `explanation`** (1–2 sentences) and a **`reference`** with a verbatim `quote`.
-- **Question ids** look like `q0001`, are unique within the set, and are **never renumbered or reused**. Score history refers to them. New questions get the next free number.
+- **Question ids** look like `q0001`, are unique within the set, and are **never renumbered or reused**. Score history refers to them. New questions get the next free number: one more than the highest id in `questions` and `removedQuestionIds`.
+- **Removing a question** (its fact is no longer in the document): delete it from `questions` and add its id to `removedQuestionIds`, so the id is never given to another question. The app ignores score history for removed ids. Ids may then have gaps.
 - **Source ids** and **tags** are lowercase slugs (`safety-manual`, `chapter-2`).
 - Unknown properties are rejected, so typos are caught.
 
@@ -71,6 +73,8 @@ First the file is checked against the schema. JSON Schema can't express the rule
 - every source is referenced by at least one question (warning)
 - `location.type` fits the source type: `row` for csv, `page` for pdf, `section` for docx/md/txt (warning)
 - options that differ only in case or spacing, e.g. `Zone B` / `zone b` (warning; exact duplicates are a schema error)
+- an id in `removedQuestionIds` is also used by a question (error)
+- two questions with the same text, ignoring case and spacing (warning)
 
 A file whose `formatVersion` is newer than the validator knows gets a single "made for a newer app" error.
 

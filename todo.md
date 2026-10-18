@@ -6,7 +6,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 ## Where we are
 
 - Phase 1 is done except the install/offline check below. GitHub Pages deploy works (live site confirmed 2026-10-18).
-- Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill (now with an independent blind-answer check by a subagent) are done, dry-run on generated fictional files only. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
+- Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill (with an independent blind-answer check and an append mode for existing sets) are done. First real .docx quiz made (EPSO); waiting on the user's review and a real .csv. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
 - Test files from the dry run (fictional): `documents/Prirucnik zastite.docx`, `documents/Pojmovi cp1250.csv`, `documents/Pitanja.csv` (+ `documents/extracted/`) and `quizzes/test-*.json`. Handy as sample imports for Phase 3; delete them whenever.
 - **Waiting on the user:** install the app on Windows and Android and test offline (first task below). It doesn't block other work, so carry on with Phase 2 and ask how it went now and then.
 
@@ -20,9 +20,10 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 ## Phase 2 — Question generation
 
 - [ ] Test the skill on a first real .docx and a first real .csv and review question quality together
+  - .docx done 2026-10-18: `quizzes/epso-verbalno-zakljucivanje.json` (52 questions, blind check 52/52). **Waiting on the user** to review the questions. Still to do: a real .csv
+  - Idea from that run: when a document's rule goes against common sense, the question should say "according to the document" ("prema skripti")
   - Also check the ingestion output against the real files (so far only tested on generated documents, not ones saved by Word/Excel)
   - Adjust `.claude/skills/generate-quiz/SKILL.md` from what we learn (question count, distractor quality, tags)
-- [ ] Support appending new questions to an existing quiz set without duplicates
 
 ## Phase 3 — Core app
 
@@ -40,6 +41,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 - [ ] Shuffle question order and option order
 - [ ] Save score history per quiz set locally (date, right, wrong, missed question ids)
   - Version the IndexedDB schema from the start so later app updates can migrate stored data (see "Updating the app" in `CLAUDE.md`)
+  - On re-import of a set, ignore (don't show, don't count) history entries for question ids that are in the set's `removedQuestionIds` or no longer exist
 - [ ] "Retry missed questions" mode (uses the saved history)
 
 ## Phase 4 — Nice to have

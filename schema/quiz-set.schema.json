@@ -52,6 +52,12 @@
       "type": "array",
       "minItems": 1,
       "items": { "$ref": "#/$defs/question" }
+    },
+    "removedQuestionIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^q[0-9]{4,}$" },
+      "description": "Ids of questions removed from the set (e.g. after the source document changed). Kept so the ids are never reused; the app ignores score history for them."
     }
   },
   "$defs": {

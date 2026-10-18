@@ -59,4 +59,6 @@ export interface QuizSet {
   updatedAt?: string
   sources: QuizSource[]
   questions: QuizQuestion[]
+  /** Ids of removed questions, kept so they are never reused. */
+  removedQuestionIds?: string[]
 }

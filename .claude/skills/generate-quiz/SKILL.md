@@ -1,6 +1,6 @@
 ---
 name: generate-quiz
-description: Generates a JopaQuiz quiz set (4-option multiple-choice questions as JSON in quizzes/) from source documents in documents/ (.docx, .csv). Use this whenever the user wants quiz questions, a quiz, test questions or practice questions made from a document or file, wants to turn a CSV of questions or terms into a quiz, or mentions a file in documents/ together with questions, even if they don't name the skill or the file format.
+description: Generates a JopaQuiz quiz set (4-option multiple-choice questions as JSON in quizzes/) from source documents in documents/ (.docx, .csv). Use this whenever the user wants quiz questions, a quiz, test questions or practice questions made from a document or file, wants to turn a CSV of questions or terms into a quiz, or mentions a file in documents/ together with questions, even if they don't name the skill or the file format. Also use it to add questions to an existing quiz set in quizzes/ (more questions, an updated document, or another document joining the set).
 argument-hint: <file(s) in documents/> [number of questions] [quiz id]
 ---
 
@@ -14,7 +14,7 @@ The output is one quiz file, `quizzes/<quiz-id>.json`, in the format described i
 
 - **Documents:** the files the user named, in `documents/`. If none were named, list what's there and ask. Several documents can go into one quiz set when the user asks for that; each becomes one entry in `sources`.
 - **Number of questions:** if the user gave a number, use it. Otherwise cover the document: one question per distinct, testable fact (see step 3). If that comes to more than about 60, say how many it would be and ask before writing.
-- **Quiz id:** a lowercase ASCII slug from the document's name or topic (`zastita-na-radu`, `safety-glossary`), unless the user gave one. If `quizzes/<id>.json` already exists, stop and ask. Score history on devices is tied to question ids, so an existing set must not be silently overwritten. Adding questions to an existing set is a separate workflow that isn't supported yet.
+- **Quiz id:** a lowercase ASCII slug from the document's name or topic (`zastita-na-radu`, `safety-glossary`), unless the user gave one. If `quizzes/<id>.json` already exists, or the user asks for more questions in an existing set, never overwrite it: score history on devices is tied to question ids. Ask whether to add to that set (follow **"Adding questions to an existing set"** at the end instead of steps 2–8) or to make a new set under another id.
 
 ## 2. Extract the documents
 
@@ -63,7 +63,7 @@ Write in the language of the document. Set `language` to its tag (`hr`, `en`, �
 
 **Tags:** 1–2 lowercase ASCII slugs per question for the topic, usually from the top-level section (`zastitna-oprema`, `pozar`). Use the same tags consistently across the set, because the app will later filter by topic.
 
-**Ids:** `q0001`, `q0002`, … in order, without gaps.
+**Ids:** `q0001`, `q0002`, … in order, without gaps. (When adding to an existing set, new ids continue from the next free id; see the last section.)
 
 ### CSV files
 
@@ -128,7 +128,7 @@ Then compare its letters with `correctIndex` (A = 0 … D = 3). Every question w
 - A wrong option is also defensible: replace it with one that is clearly wrong according to the document.
 - The question lacks context or is vague: sharpen it.
 - The agent misread and the question is fine: keep it, but note why you disagree.
-- It can't be made sound: drop it and renumber the ids so they stay gapless. This is safe only now, while the set is new and has never been imported.
+- It can't be made sound: drop it and renumber the ids so they stay gapless. This is safe only for questions written in this run, which no device has seen yet. Never renumber questions that were already in the file.
 
 After changes, run `validate-quiz` and `check-references` again until clean. If you changed questions substantially, run a fresh agent on just those (`--ids q0004,q0017`).
 
@@ -140,3 +140,24 @@ Tell the user, briefly:
 - the independent check: how many answers agreed (`38/40 agreed`), and every question you fixed or dropped because of it, with one line on why
 - 2–3 sample questions with their correct answers, so they can judge quality at a glance
 - that the file stays on this PC (gitignored); to use it, copy it to the device and import it in the app
+
+## Adding questions to an existing set
+
+Use this when the set already exists: the document got new material, a second document should join the set, or the user wants more questions. Devices keep score history per question id, so existing ids never change, are never reused, and existing questions stay where they are in the file.
+
+1. **Settle the inputs.** Which set (`quizzes/<id>.json`), which documents (the same one updated, or a new one), and how many questions or which parts. Without a number, cover what isn't covered yet (ask first if that's over ~60).
+2. **Back up the set.** Copy it to `quizzes/backup/<id>-<YYYYMMDD-HHMM>.json` (create the folder if needed; it's gitignored like the rest of `quizzes/`).
+3. **Extract again.** Run `ingest` (step 2) for every document involved, also the unchanged ones if they were edited since the last extraction (`check-references` warns about that). A new document gets a new entry in `sources`.
+4. **Repair existing questions.** Run `check-references`. Every error means the document changed under an existing question:
+   - The quote is now elsewhere (it says `it is at …`): update `location`, keep everything else.
+   - The fact changed (a new number, a renamed role): fix the question, options, explanation and quote **in place, under the same id**.
+   - The fact is gone: delete the question and add its id to `removedQuestionIds` (create the array if needed). The app then ignores its score history, and the id is never reused.
+   Keep a list of what you changed and why; it goes into the report.
+5. **Find what's not covered yet.**
+   ```bash
+   npm --prefix app run quiz-coverage -- quizzes/<id>.json --unused
+   ```
+   It lists every paragraph or row no question references, and the **next free id** (one more than the highest id ever used, including removed ones). Also read the existing questions (`npm --prefix app run quiz-blind -- quizzes/<id>.json`): a fact can already be asked from another place, e.g. a summary table repeating a rule. Skip facts that are already asked, even with other wording.
+6. **Write the new questions** with steps 3–4, appended at the end of `questions`, ids counting up from the next free id. Reuse the set's existing tags where they fit. Keep `createdAt`; set `updatedAt` to now (UTC).
+7. **Check.** Run step 6 on the whole file (`validate-quiz` also warns about two questions with the same text). Then run the step 7 independent check on the new and changed questions only: `--ids <first new id>-<last new id>,<changed ids>`.
+8. **Report** as in step 8, but split into: questions added (id range), existing questions fixed or removed (one line each, with why), and the independent check result for those. Remind the user that the updated file has to be imported again on each device; importing the same set id replaces the set and keeps its score history.

@@ -4,9 +4,8 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-18 (quiz generation now includes an independent
-"blind" answer check; the app's "Import quiz" screen is not built yet -
-Phase 3).
+Last updated: 2026-10-18 (you can now add questions to an existing quiz;
+the app's "Import quiz" screen is not built yet - Phase 3).
 
 Contents
   1. What is where
@@ -97,8 +96,21 @@ Notes
 - Questions are written in the document's language.
 - Claude never overwrites an existing quiz file; it asks first. (Device score
   history is tied to question ids q0001, q0002, ...)
-- Adding new questions to an existing quiz is not supported yet (todo.md,
-  Phase 2).
+
+Adding questions to an existing quiz
+- When the document got new material (save the new version over the old
+  file in documents\), or another document should join the quiz, ask e.g.:
+     add questions to quizzes/epso-verbalno-zakljucivanje.json from the
+     updated EPSO_Verbal_skripta_HR_knjiga.docx
+- Claude first saves a backup in quizzesackup\, then:
+   - fixes existing questions whose text changed in the document (they keep
+     their id, so score history stays),
+   - removes questions whose fact is gone from the document (their id is
+     never used again),
+   - adds questions only for parts no question covers yet.
+  The summary lists everything added, fixed and removed.
+- Afterwards import the file again on each device; it replaces the old
+  version and keeps the score history.
 
 
 4. CHECKING A QUIZ BY HAND
@@ -115,6 +127,9 @@ From C:\JopaQuizProject in a terminal (PowerShell is fine):
   npm --prefix app run quiz-blind -- quizzes\my-quiz.json
       -> questions and options without the answers (what the blind check
          reads; also handy for testing yourself)
+
+  npm --prefix app run quiz-coverage -- quizzes\my-quiz.json --unused
+      -> parts of the document no question asks about yet
 
   npm --prefix app run ingest -- documents\Pravilnik.docx
       -> re-extract a document (needed after you edit it;

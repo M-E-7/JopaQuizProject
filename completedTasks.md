@@ -4,6 +4,12 @@ Newest first.
 
 ## 2026-10-18
 
+- Appending questions to an existing quiz set without duplicates (append mode of the `generate-quiz` skill)
+  - Decisions (user): same skill with an append section (no separate skill); duplicates avoided by a coverage script plus Claude comparing wording; when the document changed, existing questions are fixed in place (same id) or removed
+  - Format: optional `removedQuestionIds` (non-breaking, `formatVersion` stays 1) so removed ids are never reused; validator errors if a removed id is still used, warns on two questions with the same text. Schema, `schema/README.md`, example quiz and `types.ts` updated together
+  - New `npm run quiz-coverage -- <quiz.json> [--unused]`: every paragraph/row of the extracted documents with the question ids that use it (list quotes cover one paragraph per line), questions whose location no longer exists, and the next free id. Shared helpers moved from `check-references.ts` into `app/scripts/extracted.ts`
+  - Skill steps: back up to `quizzes/backup/`, re-ingest, repair existing questions from `check-references` errors, find gaps with `quiz-coverage --unused` + read existing questions, append with next free ids, set `updatedAt`, checks + blind check on new/changed ids, report
+  - Verified: build + lint pass; check-references still passes on all quizzes after the refactor; validator: removed-but-used id → error, bad id → schema error, same text → warning, removed q0009 → next free id q0010; dry run on a modified copy of the fictional handbook (changed zone, removed training rule, deleted sentence still in the table, two new facts): check-references flagged all 3 broken questions, they were fixed/removed (q0001 → `removedQuestionIds`), coverage listed exactly the 2 new facts, q0006–q0007 appended, both checks clean, blind check 4/4 on new + changed. Dry-run files deleted afterwards
 - Added an independent check to the `generate-quiz` skill (new step 7): a fresh subagent answers the quiz blind from the extracted document, and the main agent compares with `correctIndex`
   - Decisions (user): blind solve against the document only (no closed-book or real-world pass); on mismatch the main agent fixes or drops the question and lists the changes in the report; verifier uses the same model
   - New `npm run quiz-blind -- <quiz.json> [--ids q0001-q0040,q0045]`: prints questions and A–D options only (no key, explanation, reference, tags), plus the extracted `.md` path(s) to read; used to split big sets across parallel agents and to re-check changed questions

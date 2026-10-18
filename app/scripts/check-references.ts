@@ -5,10 +5,11 @@
 // Usage, from app/:  npm run check-references -- <quiz.json> [...] [--extracted <folder>]
 // Run validate-quiz first; this check assumes a valid quiz file.
 // Exit code: 0 = all references found, 1 = problems.
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
-import type { QuizQuestion, QuizSource } from '../src/quiz/types.ts'
+import type { QuizQuestion } from '../src/quiz/types.ts'
 import { parseQuizJson } from '../src/quiz/validate.ts'
+import { contains, loadExtracted } from './extracted.ts'
 import type { ExtractedDocument, Section, TableContent } from './ingest/model.ts'
 
 /** How many paragraphs a quote may span (an intro line plus a short list split into items). */
@@ -52,7 +53,7 @@ for (const input of inputs) {
   const warnings: string[] = []
   const documents = new Map<string, ExtractedDocument>()
   for (const source of result.quiz.sources) {
-    const doc = loadExtracted(source, warnings)
+    const doc = loadExtracted(source, extractedDir, warnings)
     if (doc) documents.set(source.id, doc)
     else problems.push(`source "${source.id}": no ${display(join(extractedDir, `${source.fileName}.json`))}; run: npm run ingest -- <the document>`)
   }
@@ -76,37 +77,7 @@ for (const input of inputs) {
 }
 process.exitCode = failed ? 1 : 0
 
-// --- Loading -----------------------------------------------------------------
-
-function loadExtracted(source: QuizSource, warnings: string[]): ExtractedDocument | undefined {
-  const path = join(extractedDir, `${source.fileName}.json`)
-  if (!existsSync(path)) return undefined
-  const doc = JSON.parse(readFileSync(path, 'utf8')) as ExtractedDocument
-  // The document may have been edited after it was extracted.
-  const original = join(extractedDir, '..', source.fileName)
-  if (existsSync(original) && statSync(original).mtime > new Date(doc.extractedAt)) {
-    warnings.push(`${source.fileName} changed after it was extracted; run ingest again`)
-  }
-  return doc
-}
-
 // --- Matching ----------------------------------------------------------------
-
-/** Compare text the way a reader would: ignore spacing and typographic quote/dash variants. */
-function normalize(s: string): string {
-  return s
-    .normalize('NFC')
-    .replace(/[‘’‚‛′]/g, "'")
-    .replace(/[“”„‟«»″]/g, '"')
-    .replace(/[‐‑‒–—]/g, '-')
-    .replace(/…/g, '...')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function contains(haystack: string, needle: string): boolean {
-  return normalize(haystack).includes(normalize(needle))
-}
 
 function checkQuestion(question: QuizQuestion, doc: ExtractedDocument): string | undefined {
   const { location, quote } = question.reference

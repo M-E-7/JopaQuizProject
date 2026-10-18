@@ -179,6 +179,20 @@ function crossFieldIssues(quiz: QuizSet): Issue[] {
     })
   })
 
+  const questionText = new Map<string, number>()
+  quiz.questions.forEach((question, i) => {
+    const text = question.question.trim().replace(/\s+/g, ' ').toLowerCase()
+    const first = questionText.get(text)
+    if (first === undefined) questionText.set(text, i)
+    else issues.push(issue('warning', `/questions/${i}/question`, quiz, `same question text as questions[${first}]`))
+  })
+
+  quiz.removedQuestionIds?.forEach((id, i) => {
+    if (questionIndex.has(id)) {
+      issues.push(issue('error', `/removedQuestionIds/${i}`, quiz, `"${id}" is removed but still used by a question`))
+    }
+  })
+
   quiz.sources.forEach((source, i) => {
     if (!usedSources.has(source.id)) {
       issues.push(issue('warning', `/sources/${i}`, quiz, 'not referenced by any question'))
