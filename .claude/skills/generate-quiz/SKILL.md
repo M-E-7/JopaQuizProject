@@ -109,18 +109,34 @@ npm --prefix app run check-references -- quizzes/<id>.json
 - `validate-quiz` checks the format: 4 unique options, ids, required fields, sources. Read its warnings too. Options that differ only in case, or a location type that doesn't fit the source, are almost always mistakes.
 - `check-references` confirms every quote appears verbatim at its stated location. When a quote exists elsewhere it says where (`it is at [...] [p3]`). Then decide whether the location or the quote is wrong. Don't just accept the suggestion if it means the reference no longer supports the answer.
 
-Then read the whole quiz once more as a player who hasn't seen the document:
-- Is exactly one option defensibly right?
-- Could any wrong option also be true according to the document?
-- Is any question answerable by guessing or common sense?
-- Does each quote really prove the answer?
+Then read the whole quiz once more: does each quote really prove the answer, and is any question answerable by guessing or common sense? Fix what you find, then run both checks again. Whether exactly one option is defensibly right is tested in step 7 by someone who doesn't know the answers, so you don't need to judge that yourself.
 
-Fix what you find, then run both checks again.
+## 7. Independent check
 
-## 7. Report
+You wrote the questions and know the intended answers, so your own review tends to confirm them. Have a fresh agent answer the quiz **blind** from the document instead, then compare its answers with yours.
+
+Spawn a `general-purpose` agent (Agent tool, no model override, wait for its result) with the prompt below. Fill in the quiz path. For more than about 40 questions, split the set into ranges by section (`--ids q0001-q0030`, `--ids q0031-q0060`, …) and run one agent per range in parallel.
+
+> You are checking a multiple-choice quiz made from a document. Get the questions by running, from the repo root: `npm --prefix app run quiz-blind -- quizzes/<id>.json [--ids <range>]`. It also lists the extracted document(s) to read (`documents/extracted/*.md`). Read the document(s) completely. **Do not open anything in `quizzes/`**: the answers are there and this check only works if you don't know them.
+>
+> Answer every question using only the document, not general knowledge. For each question, reply with one line:
+> `<id> | <letter> | <location of the proof: headingPath + [pN], or row N> | ok`
+> Replace `ok` with `ambiguous: <letters> - <why>` when more than one option is defensible according to the document, or with `not answerable - <why>` when the document doesn't settle it (then give your best letter anyway). Also note when a question is unclear without the document's context (e.g. it doesn't say which zone or document it means). Don't fix or rewrite anything; just report.
+
+Then compare its letters with `correctIndex` (A = 0 … D = 3). Every question where the letter differs or the flag isn't `ok` needs a look: re-read the passage and decide what is wrong.
+- The key is wrong: fix `correctIndex` (and the explanation/reference if they point at the wrong thing).
+- A wrong option is also defensible: replace it with one that is clearly wrong according to the document.
+- The question lacks context or is vague: sharpen it.
+- The agent misread and the question is fine: keep it, but note why you disagree.
+- It can't be made sound: drop it and renumber the ids so they stay gapless. This is safe only now, while the set is new and has never been imported.
+
+After changes, run `validate-quiz` and `check-references` again until clean. If you changed questions substantially, run a fresh agent on just those (`--ids q0004,q0017`).
+
+## 8. Report
 
 Tell the user, briefly:
 - the file written (`quizzes/<id>.json`), the number of questions, and the split between recall and understanding
 - what was covered, and what was skipped and why: sections with nothing testable, rows that didn't fit, images or footnotes the ingestion couldn't read
+- the independent check: how many answers agreed (`38/40 agreed`), and every question you fixed or dropped because of it, with one line on why
 - 2–3 sample questions with their correct answers, so they can judge quality at a glance
 - that the file stays on this PC (gitignored); to use it, copy it to the device and import it in the app

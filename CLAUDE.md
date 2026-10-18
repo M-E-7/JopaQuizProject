@@ -79,9 +79,10 @@ npm run generate-pwa-assets  # regenerate PNG/ICO icons in public/ after editing
 npm run validate-quiz -- ../quizzes/x.json  # check quiz files or folders (exit 1 on errors)
 npm run ingest -- ../documents/x.docx       # extract a document's text for question generation (see "Ingestion")
 npm run check-references -- ../quizzes/x.json  # every quote appears at its location in documents/extracted/
+npm run quiz-blind -- ../quizzes/x.json [--ids q0001-q0040]  # questions + options without answers (for the blind check)
 ```
 
-- `validate-quiz`, `ingest` and `check-references` resolve paths from where npm was started, so from the repo root use `npm --prefix app run validate-quiz -- quizzes/x.json` / `npm --prefix app run ingest -- documents/x.docx`.
+- `validate-quiz`, `ingest`, `check-references` and `quiz-blind` resolve paths from where npm was started, so from the repo root use `npm --prefix app run validate-quiz -- quizzes/x.json` / `npm --prefix app run ingest -- documents/x.docx`.
 
 - `.claude/launch.json` defines `app-dev` (dev server, port 5173) and `app-preview` (production build, port 4173) for Claude's browser preview. Vite `base` is `/JopaQuizProject/` everywhere (dev, preview, production), so after starting either one navigate to `/JopaQuizProject/` — the bare origin returns 404. The service worker only runs in the production build, so test PWA/offline behaviour with `npm run build` + `app-preview`.
 
@@ -116,7 +117,8 @@ Full spec: `schema/README.md`. Key rules:
 
 ### Generating quizzes
 
-- Use the project skill `.claude/skills/generate-quiz/` (`/generate-quiz <file in documents/>`): ingest → read `documents/extracted/<file>.md` → write `quizzes/<id>.json` → `validate-quiz` + `check-references` until clean → report.
+- Use the project skill `.claude/skills/generate-quiz/` (`/generate-quiz <file in documents/>`): ingest → read `documents/extracted/<file>.md` → write `quizzes/<id>.json` → `validate-quiz` + `check-references` until clean → independent blind check → report.
+- Independent check (user's choice): a fresh `general-purpose` subagent (same model) reads the extracted document and answers the questions from `npm run quiz-blind` without opening `quizzes/`; mismatches with `correctIndex` and "ambiguous" flags are fixed or the question dropped (renumbering is OK only before first import), and the report says how many agreed and what changed. It checks against the document only, not real-world facts. Split into `--ids` ranges for over ~40 questions.
 - Defaults (user's choices): cover the document (one question per testable fact; ask first if over ~60); mostly recall plus ~¼ understanding questions; Q&A CSVs keep the user's wording (obvious typos fixed) and their A–D options; never overwrite an existing quiz set.
 - `check-references` matches quotes ignoring spacing and typographic quote/dash variants. A quote may run over consecutive paragraphs (a list split into items, joined with `\n`, labels optional), starting at `location.paragraph`. For CSV, every `Column: value` part must be in that row and listed in `location.columns`.
 
@@ -135,7 +137,7 @@ Full spec: `schema/README.md`. Key rules:
 - `schema/` — quiz format schema, spec and committed example quiz.
 - `app/` — the React PWA (Vite project: `src/`, `public/` icons, `vite.config.ts`, `pwa-assets.config.ts`).
   - `app/src/quiz/` — quiz format types (`types.ts`, keep in sync with the schema) and the validator (`validate.ts`; no DOM or Node APIs, it runs in both).
-  - `app/scripts/` — Node command-line scripts (type-checked by `tsconfig.scripts.json`): `validate-quiz.ts`, `ingest.ts` + `ingest/`, `check-references.ts`. Imports between `.ts` files need the `.ts` extension so Node can run them, and no TypeScript-only runtime syntax (enums, constructor parameter properties). Their libraries are devDependencies; only `ajv`/`ajv-formats` ship in the app.
+  - `app/scripts/` — Node command-line scripts (type-checked by `tsconfig.scripts.json`): `validate-quiz.ts`, `ingest.ts` + `ingest/`, `check-references.ts`, `quiz-blind.ts`. Imports between `.ts` files need the `.ts` extension so Node can run them, and no TypeScript-only runtime syntax (enums, constructor parameter properties). Their libraries are devDependencies; only `ajv`/`ajv-formats` ship in the app.
 - `.github/workflows/deploy.yml` — build + deploy to GitHub Pages.
 - `.claude/launch.json` — dev/preview server configs for Claude's browser pane.
 - `.claude/skills/generate-quiz/` — the question-generation skill.

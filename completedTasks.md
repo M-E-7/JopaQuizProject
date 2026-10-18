@@ -4,6 +4,11 @@ Newest first.
 
 ## 2026-10-18
 
+- Added an independent check to the `generate-quiz` skill (new step 7): a fresh subagent answers the quiz blind from the extracted document, and the main agent compares with `correctIndex`
+  - Decisions (user): blind solve against the document only (no closed-book or real-world pass); on mismatch the main agent fixes or drops the question and lists the changes in the report; verifier uses the same model
+  - New `npm run quiz-blind -- <quiz.json> [--ids q0001-q0040,q0045]`: prints questions and A–D options only (no key, explanation, reference, tags), plus the extracted `.md` path(s) to read; used to split big sets across parallel agents and to re-check changed questions
+  - Step 6 self-review shortened (the blind check covers "exactly one defensible answer"); report now states how many answers agreed and what changed
+  - Verified: build + lint pass; `quiz-blind` on the example quiz shows no answers, `--ids` filtering and bad input work; a copy of the dry-run docx quiz with 3 planted faults (wrong key, two questions with a second defensible option) → the blind agent caught all 3 and passed the 2 sound questions
 - Added `GUIDE.txt`: the owner's plain-text how-to (what is where, working with Claude, making and checking quizzes, getting quizzes onto devices (planned), installing, updating the app, developer commands, troubleshooting, key rules). `CLAUDE.md` now says to keep it updated after each task
 - Created the question-generation skill `.claude/skills/generate-quiz/SKILL.md` and `npm run check-references`
   - Skill workflow: settle inputs (never overwrite an existing set) → ingest → choose facts → write questions (rules for options, give-aways, explanations, verbatim references, tags, CSV shapes) → write `quizzes/<id>.json` → validate-quiz + check-references until clean → read as a player → report

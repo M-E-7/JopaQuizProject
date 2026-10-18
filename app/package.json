@@ -11,7 +11,8 @@
     "generate-pwa-assets": "pwa-assets-generator",
     "validate-quiz": "node scripts/validate-quiz.ts",
     "ingest": "node scripts/ingest.ts",
-    "check-references": "node scripts/check-references.ts"
+    "check-references": "node scripts/check-references.ts",
+    "quiz-blind": "node scripts/quiz-blind.ts"
   },
   "dependencies": {
     "ajv": "^8.20.0",

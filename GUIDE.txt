@@ -4,8 +4,9 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-18 (Phase 2 done: quiz generation works; the app's
-"Import quiz" screen is not built yet - Phase 3).
+Last updated: 2026-10-18 (quiz generation now includes an independent
+"blind" answer check; the app's "Import quiz" screen is not built yet -
+Phase 3).
 
 Contents
   1. What is where
@@ -79,7 +80,13 @@ care about them, e.g. a copy on OneDrive or a USB stick.
    - extracts the text (npm run ingest),
    - writes quizzes\<quiz-id>.json,
    - runs the two checks (format + "every quote really is in the document"),
-   - shows you a summary with a few sample questions.
+   - has a second Claude answer the quiz "blind" from the document (without
+     seeing the answers); where it disagrees or finds two right options,
+     Claude fixes or drops the question,
+   - shows you a summary: how many answers the second check agreed with,
+     what it changed, and a few sample questions.
+   This checks the questions against the document, not against the real
+   world: if the document is wrong or outdated, so is the quiz.
    By default it covers the whole document (one question per testable fact)
    and asks first if that would be more than ~60 questions.
 
@@ -104,6 +111,10 @@ From C:\JopaQuizProject in a terminal (PowerShell is fine):
 
   npm --prefix app run check-references -- quizzes\my-quiz.json
       -> every quote appears at its stated place in the document
+
+  npm --prefix app run quiz-blind -- quizzes\my-quiz.json
+      -> questions and options without the answers (what the blind check
+         reads; also handy for testing yourself)
 
   npm --prefix app run ingest -- documents\Pravilnik.docx
       -> re-extract a document (needed after you edit it;

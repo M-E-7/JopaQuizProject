@@ -6,7 +6,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 ## Where we are
 
 - Phase 1 is done except the install/offline check below. GitHub Pages deploy works (live site confirmed 2026-10-18).
-- Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill are done, dry-run on generated fictional files only. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
+- Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill (now with an independent blind-answer check by a subagent) are done, dry-run on generated fictional files only. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
 - Test files from the dry run (fictional): `documents/Prirucnik zastite.docx`, `documents/Pojmovi cp1250.csv`, `documents/Pitanja.csv` (+ `documents/extracted/`) and `quizzes/test-*.json`. Handy as sample imports for Phase 3; delete them whenever.
 - **Waiting on the user:** install the app on Windows and Android and test offline (first task below). It doesn't block other work, so carry on with Phase 2 and ask how it went now and then.
 
