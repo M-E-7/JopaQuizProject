@@ -8,7 +8,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 - Phase 1 is done except the install/offline check below. GitHub Pages deploy works (live site confirmed 2026-10-18).
 - Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill (with an independent blind-answer check and an append mode for existing sets) are done. First real .docx quiz made (EPSO), regenerated as practice items after the user's review (the skill now picks fact questions or practice items by document kind); waiting on the user's review and a real .csv. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
 - Test files from the dry run (fictional): `documents/Prirucnik zastite.docx`, `documents/Pojmovi cp1250.csv`, `documents/Pitanja.csv` (+ `documents/extracted/`) and `quizzes/test-*.json`. Handy as sample imports; delete them whenever.
-- Phase 3: platform layer (`app/src/platform/`, IndexedDB via `idb`) and "Import quiz from file" (with the quiz list and replace) are done. Next: delete a quiz set, then the question screen. Once deployed, the user can import the EPSO quiz on their devices.
+- Phase 3: platform layer (`app/src/platform/`, IndexedDB via `idb`), "Import quiz from file" (with the quiz list and replace) and the question screen with answer feedback are done — quizzes can be played (file order, nothing saved yet). Next: delete a quiz set (Delete button next to Start; `ConfirmDialog` is ready for the confirmation), then the source reference. Once deployed, the user can import and play the EPSO quiz on their devices.
 - **Waiting on the user:** offline check on Windows (installed there), install + offline check on Android (first task below). It doesn't block other work, so carry on with Phase 2 and ask how it went now and then.
 
 ## Phase 1 — Project setup
@@ -32,9 +32,6 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 - [ ] Delete a quiz set (with its score history, after a confirmation)
   - Already done with the import task: the list of imported sets (title, question count, import date) and replace on re-import of the same id
   - Test a real file pick on Windows and Android (the browser pane can't open native file dialogs), incl. that Android shows .json files from Downloads/Drive
-- [ ] Question screen: question text + 4 options
-  - Question text can hold several paragraphs separated by `\n\n` (practice items: a ~60–130-word passage, then the question). Render with `white-space: pre-line`, and keep the passage readable and scrollable on a phone with the options below it
-- [ ] Answer feedback: mark right/wrong, highlight the correct option, show the explanation
 - [ ] Show the source reference for the question (location + quoted passage / row)
 - [ ] Score tracking: count of correct and wrong answers during a quiz
 - [ ] End-of-quiz summary (score, percentage, list of missed questions)

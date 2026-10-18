@@ -4,7 +4,7 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-18 (practice tasks from skill guides - section 3).
+Last updated: 2026-10-18 (playing a quiz - section 5).
 
 Contents
   1. What is where
@@ -165,7 +165,13 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
    questions and the date on the device vs. in the file, so you don't
    replace a newer version with an older one. Your score history is kept.
 
-(Playing a quiz and deleting one come in the next app updates.)
+4. Playing: "Start" next to a quiz. Tap an answer - it counts at once (no
+   undo), the right one turns green and the explanation appears; "Next".
+   "Quit" or the back button returns to the list (it asks first if you've
+   answered something, because scores aren't saved yet).
+
+(Deleting a quiz, scores, shuffling and the source passage come in the next
+app updates.)
 
 To share with someone: send them the .json file and the app link.
 

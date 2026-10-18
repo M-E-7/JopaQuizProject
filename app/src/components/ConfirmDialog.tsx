@@ -1,0 +1,53 @@
+import { useEffect, useRef, type ReactNode } from 'react'
+
+/** Modal yes/no question. Esc (and Android's back gesture, where supported) counts as cancel. */
+export default function ConfirmDialog({
+  open,
+  children,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean
+  children: ReactNode
+  confirmLabel: string
+  cancelLabel: string
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    const dialog = ref.current
+    if (!dialog) return
+    if (open && !dialog.open) {
+      dialog.showModal()
+      // The safe choice gets focus, so Enter doesn't confirm by accident.
+      cancelRef.current?.focus()
+    }
+    if (!open && dialog.open) dialog.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      className="panel dialog"
+      onCancel={(e) => {
+        e.preventDefault()
+        onCancel()
+      }}
+    >
+      {children}
+      <div className="actions">
+        <button type="button" className="button primary" onClick={onConfirm}>
+          {confirmLabel}
+        </button>
+        <button type="button" className="button" ref={cancelRef} onClick={onCancel}>
+          {cancelLabel}
+        </button>
+      </div>
+    </dialog>
+  )
+}
