@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "generate-pwa-assets": "pwa-assets-generator",
     "validate-quiz": "node scripts/validate-quiz.ts",
-    "ingest": "node scripts/ingest.ts"
+    "ingest": "node scripts/ingest.ts",
+    "check-references": "node scripts/check-references.ts"
   },
   "dependencies": {
     "ajv": "^8.20.0",

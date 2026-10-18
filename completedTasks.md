@@ -4,6 +4,11 @@ Newest first.
 
 ## 2026-10-18
 
+- Created the question-generation skill `.claude/skills/generate-quiz/SKILL.md` and `npm run check-references`
+  - Skill workflow: settle inputs (never overwrite an existing set) → ingest → choose facts → write questions (rules for options, give-aways, explanations, verbatim references, tags, CSV shapes) → write `quizzes/<id>.json` → validate-quiz + check-references until clean → read as a player → report
+  - Defaults (user): cover the document (ask if over ~60), mostly recall plus ~¼ understanding, Q&A CSVs keep wording and A–D options; tested by a dry run instead of formal skill-creator evals
+  - `check-references`: loads `documents/extracted/<fileName>.json` per source; checks headingPath/paragraph or row/columns and that the quote is there (spacing and typographic quotes/dashes ignored; may span a list split into consecutive items); points to where a misplaced quote actually is; warns if the document changed after extraction
+  - Verified: dry run on the fictional test documents: `quizzes/test-prirucnik-zastite.json` (docx, 5 questions) and `quizzes/test-pojmovi-i-pitanja.json` (two CSVs, 5 questions) pass both checks. 9 broken references (wrong paragraph/path/row/column, paraphrased quote, missing extracted file) are all reported with hints. Build + lint pass. The dry run led to two skill rules: list quotes spanning items, and including the option column for letter answers
 - Document ingestion: `npm run ingest -- <files|folders> [--encoding x] [--out dir]` → `documents/extracted/<file>.md` + `.json`
   - Decisions (user): own .docx reader rather than mammoth; output files in `documents/extracted/`; mixed Croatian/English documents (CSV fallback encoding Windows-1250); test with generated files for now
   - Pluggable readers in `app/scripts/ingest/` (`readers.ts` registry, `docx.ts`, `csv.ts`, `model.ts`, `render.ts`); devDependencies fflate, @xmldom/xmldom, papaparse
