@@ -4,7 +4,7 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-18 (the app can now import quiz files - section 5).
+Last updated: 2026-10-18 (practice tasks from skill guides - section 3).
 
 Contents
   1. What is where
@@ -87,6 +87,15 @@ care about them, e.g. a copy on OneDrive or a USB stick.
    world: if the document is wrong or outdated, so is the quiz.
    By default it covers the whole document (one question per testable fact)
    and asks first if that would be more than ~60 questions.
+
+   What kind of questions depends on the document:
+   - Manuals, rules, glossaries, question lists -> questions about what the
+     document says ("How often must ... be checked?").
+   - A guide that teaches how to solve a type of task (e.g. the EPSO verbal
+     reasoning skripta) -> practice tasks: Claude writes new short texts with
+     four statements, each wrong one built on a trap from the guide. After
+     answering, the app shows the guide's rule that decides the task.
+   Claude says which kind it picked; tell it if you want the other kind.
 
 4. Read the samples. If something's off, just say so ("distractors too easy",
    "skip chapter 5", "fewer questions") and Claude fixes the file.

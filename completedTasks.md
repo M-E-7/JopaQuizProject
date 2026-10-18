@@ -4,6 +4,12 @@ Newest first.
 
 ## 2026-10-18
 
+- `generate-quiz` skill: practice items for documents that teach a skill (from the review of the first EPSO quiz, which asked *about* the guide instead of practising it; target style: the user's "Core Principles Mock Test")
+  - Decisions (user): no format change, the improvement is in what the questions ask; questions in the document's language (Croatian); old 52-question EPSO set replaced (backup in `quizzes/backup/`)
+  - Skill: step 3 first decides the document kind (reference material → fact questions; skill/method guide → practice items); new "Practice items" section (original passage in `question` with `\n\n` paragraphs, one item per rule, one entailed statement + three trap-based distractors, varied form of the correct statement, explanation up to ~3 sentences with no letter references, the guide's rule as reference); blind-check prompt variant (passage = only source of facts, guide = rules); report names the kind
+  - `quizzes/epso-verbalno-zakljucivanje.json` regenerated: 34 items, one per rule in parts 1–3 of the guide (one with a "u suprotnosti s tekstom" stem), `correctIndex` spread 9/9/8/8
+  - Verified: `validate-quiz` OK, `check-references` 34/34, `quiz-coverage` shows every rule section of parts 1–3 used; blind check by two fresh agents 34/34 agreed, 0 ambiguous; two option wordings tightened from their notes (q0008, q0033); no letter references in explanations
+
 - "Import quiz from file" (first UI on the platform layer), plus the list of imported sets and replace on re-import
   - `app/src/components/ImportQuiz.tsx`: button → `platform.files.pickQuizFile()` → `parseQuizJson()` → save. Refused files show the file name and up to 10 issues ("… and N more"); warnings are shown after a successful import; a set with an id already on the device asks Replace/Cancel and compares question count + last-changed date (device vs. file); history is kept on replace
   - `app/src/components/QuizList.tsx`: title, question count, import date; `app/src/format.ts` text helpers; button/panel styles and a new `--on-accent` token in `index.css`
