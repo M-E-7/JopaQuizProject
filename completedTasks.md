@@ -4,6 +4,12 @@ Newest first.
 
 ## 2026-10-18
 
+- Document ingestion: `npm run ingest -- <files|folders> [--encoding x] [--out dir]` → `documents/extracted/<file>.md` + `.json`
+  - Decisions (user): own .docx reader rather than mammoth; output files in `documents/extracted/`; mixed Croatian/English documents (CSV fallback encoding Windows-1250); test with generated files for now
+  - Pluggable readers in `app/scripts/ingest/` (`readers.ts` registry, `docx.ts`, `csv.ts`, `model.ts`, `render.ts`); devDependencies fflate, @xmldom/xmldom, papaparse
+  - .docx: sections with heading paths, numbered paragraphs, list items and table rows; headings by style name or outline level (works with localized style ids); Word auto-numbering rebuilt; images/text boxes/footnotes counted in notes; title from Title style
+  - .csv: encoding (BOM, UTF-8, Windows-1250 fallback, `--encoding`), separator detection, spreadsheet row numbers kept across blank rows and multi-line cells, trailing empty columns dropped, shape guess qa/facts/unknown
+  - Verified: tsc + lint + build pass; a generated Croatian .docx (title, text before first heading, 2-level numbered headings, numbered/lettered/bullet lists, hyperlink, merged table cell, image, footnote) extracts with correct heading paths and labels, and the same file with Croatian style ids (`Naslov1`) gives identical output; CSVs: Windows-1250 with `;` and a blank row, UTF-8 BOM with multi-line cell and trailing comma, Q&A with A–D + "Točan odgovor", Q&A detected by "?" cells, single column; broken .docx, unsupported type, unknown encoding and Word lock files handled. Not tested on files saved by real Word/Excel yet
 - Wrote the quiz validator (shared module + command line), user's choice of architecture
   - `app/src/quiz/validate.ts`: `parseQuizJson()` / `validateQuizSet()` — Ajv 2020 (+ `ajv-formats` for `date-time`) against `schema/quiz-set.schema.json`, then cross-field rules: unique question/source ids, `sourceId` exists, unused sources (warning), location type vs. source type (warning), options differing only in case/spacing (warning). Friendly errors for non-quiz files, newer `formatVersion`, invalid JSON, BOM tolerated; `location` oneOf errors reduced to the shape named by `type`
   - `app/src/quiz/types.ts`: TypeScript types for format v1

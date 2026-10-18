@@ -6,7 +6,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 ## Where we are
 
 - Phase 1 is done except the install/offline check below. GitHub Pages deploy works (live site confirmed 2026-10-18).
-- Phase 2 started: the quiz validator is done (`npm run validate-quiz`, shared with the app's future import). Next: document ingestion.
+- Phase 2: quiz validator (`npm run validate-quiz`) and document ingestion (`npm run ingest`) are done, tested on generated fictional files only. Next: the generate-quiz skill.
 - **Waiting on the user:** install the app on Windows and Android and test offline (first task below). It doesn't block other work, so carry on with Phase 2 and ask how it went now and then.
 
 ## Phase 1 — Project setup
@@ -18,17 +18,16 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 2 — Question generation
 
-- [ ] Document ingestion (pluggable, one reader per format so new formats can be added later)
-  - .docx → headings + paragraphs, keeping the heading path for references
-  - .csv → header + rows, keeping row numbers for references
-  - Detect CSV shape: fact table (e.g. term/definition) vs. ready-made Q&A rows
 - [ ] Create the Claude skill for generating questions (`.claude/skills/generate-quiz/`)
   - Input: a document in `documents/`; output: a quiz JSON file in `quizzes/`
+  - Starts by running `npm run ingest` and works from `documents/extracted/<file>.md` (locations and quotes copied from it)
+  - Consider a quote check: every question's `quote` appears in the extracted `.json` at its stated location
   - Questions written in the same language as the source document
   - Rules: one unambiguous correct answer, plausible distractors, correct option position varied, every question tied to a referenced passage/row, no questions answerable without the document
   - Q&A CSVs: convert existing questions and write the distractors; fact-table CSVs: build questions from the rows
   - Runs the validation script on its output
 - [ ] Test the skill on a first real .docx and a first real .csv and review question quality together
+  - Also check the ingestion output against the real files (so far only tested on generated documents, not ones saved by Word/Excel)
 - [ ] Support appending new questions to an existing quiz set without duplicates
 
 ## Phase 3 — Core app
