@@ -1,0 +1,29 @@
+# Private content — the repo is public. Only the README in each folder is committed.
+documents/*
+!documents/README.md
+quizzes/*
+!quizzes/README.md
+
+# Dependencies and build output
+node_modules/
+dist/
+dev-dist/
+*.tsbuildinfo
+
+# Environment and local overrides
+.env
+.env.*
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Claude Code local (per-machine) settings
+.claude/settings.local.json
+
+# OS / editor clutter
+Thumbs.db
+desktop.ini
+.DS_Store
+.idea/

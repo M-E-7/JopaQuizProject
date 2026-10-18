@@ -5,7 +5,6 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 1 — Project setup
 
-- [ ] Create folder structure (`documents/`, `quizzes/`, `app/`; `schema/` already exists) and a `.gitignore` covering `documents/`, `quizzes/`, `node_modules/`, `dist/`
 - [ ] Scaffold a Vite React + TypeScript app in `app/`
 - [ ] Add `vite-plugin-pwa`: web app manifest, app icons, offline caching
 - [ ] Set Vite `base` to `/<repo-name>/` for GitHub Pages

@@ -62,8 +62,12 @@ Full spec: `schema/README.md`. Key rules:
 - **.docx** — `location.type: "section"` with the heading path to the section, plus a verbatim quote of the passage containing the answer.
 - **.csv** — content varies: may be a fact table (e.g. term/definition) or ready-made Q&A rows. `location.type: "row"` with the spreadsheet row number (header = row 1) and column names; quote as `Column: value | Column: value`.
 
-## Project files
+## Repository layout
 
+- `documents/` — source documents to generate questions from (**gitignored** except its README).
+- `quizzes/` — generated quiz sets, `<quiz-id>.json` (**gitignored** except its README).
+- `schema/` — quiz format schema, spec and committed example quiz.
+- `app/` — the React PWA (created by the scaffold task).
 - `todo.md` — open tasks, grouped by phase.
 - `completedTasks.md` — finished tasks with completion date.
 
