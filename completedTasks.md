@@ -4,7 +4,11 @@ Newest first.
 
 ## 2026-10-18
 
-- Added GitHub Actions deploy workflow `.github/workflows/deploy.yml` and documented deploying in `CLAUDE.md`
+- Added the app version label: small muted footer `2026-10-18 · a5a8217` (UTC build date · short commit hash)
+  - Injected via Vite `define` in `app/vite.config.ts` (`__BUILD_DATE__`, `__COMMIT__`): `GITHUB_SHA` in CI, `git rev-parse --short HEAD` locally, `dev` fallback; types in `app/src/build-info.d.ts`
+  - Versioning rule (user's choice): no manual version number; `version` in `app/package.json` stays unused
+  - Verified: build + lint pass; in the preview build the footer shows today's date and the HEAD hash, readable in light and dark
+- Confirmed the GitHub Pages deploy: Pages enabled by the user, https://m-e-7.github.io/JopaQuizProject/ serves the app- Added GitHub Actions deploy workflow `.github/workflows/deploy.yml` and documented deploying in `CLAUDE.md`
   - Push to `main` touching `app/**` (or manual run) → `npm ci`, lint, build → GitHub Pages
   - Uses the current official action majors: checkout v7, setup-node v7 (Node 24, npm cache), configure-pages v6, upload-pages-artifact v5, deploy-pages v5
   - Verified locally: YAML parses, the same `npm ci` → lint → build steps pass from a clean install. The workflow itself has not run on GitHub yet.

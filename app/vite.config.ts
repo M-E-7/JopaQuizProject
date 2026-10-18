@@ -1,12 +1,28 @@
+import { execSync } from 'node:child_process'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// Short commit hash for the version label: GITHUB_SHA in CI, git locally.
+function commitHash(): string {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA.slice(0, 7)
+  try {
+    return execSync('git rev-parse --short HEAD').toString().trim()
+  } catch {
+    return 'dev'
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   // Served from https://m-e-7.github.io/JopaQuizProject/ (GitHub Pages project site).
   // Used in dev and preview too, so local URLs match production.
   base: '/JopaQuizProject/',
+  // Version label shown in the footer, to see which build a device is running.
+  define: {
+    __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+    __COMMIT__: JSON.stringify(commitHash()),
+  },
   plugins: [
     react(),
     VitePWA({
