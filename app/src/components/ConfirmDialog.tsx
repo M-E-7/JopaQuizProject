@@ -6,6 +6,7 @@ export default function ConfirmDialog({
   children,
   confirmLabel,
   cancelLabel,
+  danger = false,
   onConfirm,
   onCancel,
 }: {
@@ -13,6 +14,8 @@ export default function ConfirmDialog({
   children: ReactNode
   confirmLabel: string
   cancelLabel: string
+  /** The confirm button destroys data: shown in the "wrong" colour instead of the accent. */
+  danger?: boolean
   onConfirm: () => void
   onCancel: () => void
 }) {
@@ -41,7 +44,7 @@ export default function ConfirmDialog({
     >
       {children}
       <div className="actions">
-        <button type="button" className="button primary" onClick={onConfirm}>
+        <button type="button" className={danger ? 'button danger' : 'button primary'} onClick={onConfirm}>
           {confirmLabel}
         </button>
         <button type="button" className="button" ref={cancelRef} onClick={onCancel}>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ConfirmDialog from './components/ConfirmDialog.tsx'
+import { plural } from './format.ts'
 import ImportQuiz from './components/ImportQuiz.tsx'
 import QuizList from './components/QuizList.tsx'
 import QuizScreen from './components/QuizScreen.tsx'
@@ -19,6 +20,9 @@ function App() {
   const [loadError, setLoadError] = useState<string>()
   const [quizId, setQuizId] = useState(() => quizIdFromState(history.state))
   const [confirmingLeave, setConfirmingLeave] = useState(false)
+  /** The set whose Delete was tapped, while the confirmation is open. */
+  const [deleting, setDeleting] = useState<QuizSetSummary>()
+  const [deleteError, setDeleteError] = useState<string>()
   /** True while leaving the quiz would lose answers; set by QuizScreen. */
   const leaveGuard = useRef(false)
 
@@ -63,6 +67,17 @@ function App() {
     history.back()
   }
 
+  async function deleteQuiz(quiz: QuizSetSummary) {
+    setDeleting(undefined)
+    try {
+      await platform.storage.deleteQuizSet(quiz.id)
+      setDeleteError(undefined)
+    } catch (e) {
+      setDeleteError(`Couldn't delete ${quiz.title}: ${(e as Error).message}`)
+    }
+    loadQuizzes()
+  }
+
   return (
     <main className="app">
       {quizId ? (
@@ -86,9 +101,30 @@ function App() {
               Couldn't read the quizzes stored on this device: {loadError}
             </p>
           ) : (
-            quizzes && <QuizList quizzes={quizzes} onStart={startQuiz} />
+            quizzes && <QuizList quizzes={quizzes} onStart={startQuiz} onDelete={setDeleting} />
+          )}
+          {deleteError && (
+            <p className="panel error" role="alert">
+              {deleteError}
+            </p>
           )}
           <ImportQuiz onImported={loadQuizzes} />
+          <ConfirmDialog
+            open={deleting !== undefined}
+            confirmLabel="Delete"
+            cancelLabel="Keep it"
+            danger
+            onConfirm={() => deleting && deleteQuiz(deleting)}
+            onCancel={() => setDeleting(undefined)}
+          >
+            {deleting && (
+              <p>
+                Delete <strong>{deleting.title}</strong> ({plural(deleting.questionCount, 'question')}) from this
+                device? Its score history is deleted too. You can import the file again, but the history can't be
+                brought back.
+              </p>
+            )}
+          </ConfirmDialog>
         </>
       )}
       <footer className="version muted">

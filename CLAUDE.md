@@ -108,7 +108,7 @@ npm run quiz-coverage -- ../quizzes/x.json [--unused]  # which document paragrap
 - `vite-plugin-pwa` (config in `app/vite.config.ts`): web manifest, Workbox service worker (`generateSW`) that precaches the whole app shell, so the app works fully offline.
 - `registerType: 'autoUpdate'` with the plain `registerSW.js` script (no `virtual:pwa-register` import): the new service worker activates in the background, but the open page is not reloaded — hence the two-launch update. The Phase 4 "new version available" notice will need `'prompt'` and the `virtual:pwa-register` module instead.
 - Icons: single source `app/public/favicon.svg` (four answer bars, one green with a check mark). `app/pwa-assets.config.ts` generates the PNG/ICO sizes; maskable and Apple icons use the brand blue `#2563eb` as background. Generated icons are committed.
-- Theme: `app/src/index.css` defines colour tokens (`--text`, `--bg`, `--surface`, `--accent`, `--on-accent` (text on accent backgrounds), `--correct`, `--wrong`, …) for light and dark (`prefers-color-scheme`). Use the tokens, not hard-coded colours. Shared classes: `.panel` (`.error` / `.success`), `.button` (`.primary`), `.actions`; buttons are at least 44px tall for touch.
+- Theme: `app/src/index.css` defines colour tokens (`--text`, `--bg`, `--surface`, `--accent`, `--on-accent` (text on accent backgrounds), `--correct`, `--wrong`, `--on-wrong`, …) for light and dark (`prefers-color-scheme`). Use the tokens, not hard-coded colours. Shared classes: `.panel` (`.error` / `.success`), `.button` (`.primary`, `.danger` for destructive actions), `.actions`; buttons are at least 44px tall for touch.
 
 ## Quiz file format
 
@@ -149,7 +149,7 @@ Full spec: `schema/README.md`. Key rules:
 - `app/` — the React PWA (Vite project: `src/`, `public/` icons, `vite.config.ts`, `pwa-assets.config.ts`).
   - `app/src/quiz/` — quiz format types (`types.ts`, keep in sync with the schema) and the validator (`validate.ts`; no DOM or Node APIs, it runs in both).
   - `app/src/platform/` — platform interface (`types.ts`), the `platform` object the UI uses (`index.ts`), web implementations (`web/idb-storage.ts`, `web/file-import.ts`).
-  - `app/src/components/` — UI components (`ImportQuiz.tsx`, `QuizList.tsx` with Start buttons, `QuizScreen.tsx` — question, options, answer feedback, `ConfirmDialog.tsx` — reusable modal yes/no); `app/src/format.ts` — small text helpers (`plural`, `formatDate`).
+  - `app/src/components/` — UI components (`ImportQuiz.tsx`, `QuizList.tsx` with Start and Delete buttons (Delete is confirmed in `App.tsx`), `QuizScreen.tsx` — question, options, answer feedback, `ConfirmDialog.tsx` — reusable modal yes/no, `danger` for destructive confirms); `app/src/format.ts` — small text helpers (`plural`, `formatDate`).
   - `app/scripts/` — Node command-line scripts (type-checked by `tsconfig.scripts.json`): `validate-quiz.ts`, `ingest.ts` + `ingest/`, `check-references.ts`, `quiz-blind.ts`, `quiz-coverage.ts`; `extracted.ts` holds the shared loading/text-matching helpers for the scripts that read `documents/extracted/`. Imports between `.ts` files need the `.ts` extension so Node can run them, and no TypeScript-only runtime syntax (enums, constructor parameter properties). Their libraries are devDependencies; only `ajv`/`ajv-formats` ship in the app.
 - `.github/workflows/deploy.yml` — build + deploy to GitHub Pages.
 - `.claude/launch.json` — dev/preview server configs for Claude's browser pane.
