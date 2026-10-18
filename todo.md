@@ -29,6 +29,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 - [ ] Platform interface for storage and file import (`QuizStorage` etc.) so a native wrapper can be swapped in later
 - [ ] IndexedDB implementation of the storage interface; request persistent storage (`navigator.storage.persist()`)
 - [ ] "Import quiz from file": `<input type="file" accept=".json">` → `parseQuizJson()` from `app/src/quiz/validate.ts` → store in IndexedDB; show errors/warnings to the user
+  - Update `GUIDE.txt` section 5 (currently marked "not built yet")
   - First time Ajv is in the production bundle: check that `npm run build` output works in `app-preview`, and note the bundle size
 - [ ] List imported quiz sets; delete or replace a quiz set (re-import of the same id)
 - [ ] Question screen: question text + 4 options

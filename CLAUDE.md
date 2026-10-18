@@ -139,6 +139,7 @@ Full spec: `schema/README.md`. Key rules:
 - `.github/workflows/deploy.yml` — build + deploy to GitHub Pages.
 - `.claude/launch.json` — dev/preview server configs for Claude's browser pane.
 - `.claude/skills/generate-quiz/` — the question-generation skill.
+- `GUIDE.txt` — the owner's how-to for processes (generating quizzes, getting them onto devices, installing, updating the app, commands, troubleshooting).
 - `todo.md` — open tasks, grouped by phase, with a "Where we are" note at the top.
 - `completedTasks.md` — finished tasks with completion date (newest first).
 
@@ -149,7 +150,8 @@ Full spec: `schema/README.md`. Key rules:
 - After each completed task:
   1. Move it from `todo.md` to `completedTasks.md` (with the date and how it was verified) and refresh the "Where we are" note.
   2. Update this file if the task produced a decision, a new convention or new commands.
-  3. Give the user a suggested git commit message in a code block.
+  3. Update `GUIDE.txt` if a process the owner follows changed (making quizzes, importing, installing, updating, commands), including its "Last updated" line. It's the owner's plain-language how-to for when they've been away, so keep it short, practical and free of internals.
+  4. Give the user a suggested git commit message in a code block.
 - Before finishing a task that touches `app/`, run `npm run build` and `npm run lint` and make sure both pass; check UI changes in the browser pane (`app-dev`, or `app-preview` for PWA/offline).
 - For significant decisions, discuss pros and cons and let the user choose (they like to understand trade-offs). Ask when something is unclear rather than guessing.
 - When the user has to do something themselves (GitHub settings, installing on devices), give a short step-by-step guide.

@@ -1,0 +1,225 @@
+JOPAQUIZ - HOW-TO GUIDE (for the owner)
+=======================================
+
+Short reminders for the everyday processes: making quizzes with Claude,
+getting them onto devices, updating the app. Not about using the app itself.
+
+Last updated: 2026-10-18 (Phase 2 done: quiz generation works; the app's
+"Import quiz" screen is not built yet - Phase 3).
+
+Contents
+  1. What is where
+  2. Working with Claude on this project
+  3. Making a quiz from a document
+  4. Checking a quiz by hand
+  5. Getting a quiz onto a device
+  6. Installing the app on a device
+  7. Updating the app (new version)
+  8. Developer commands
+  9. Troubleshooting
+ 10. Rules worth remembering
+
+
+1. WHAT IS WHERE
+----------------
+
+Project folder:  C:\JopaQuizProject
+GitHub repo:     https://github.com/M-E-7/JopaQuizProject   (PUBLIC)
+Live app:        https://m-e-7.github.io/JopaQuizProject/
+
+  documents\             your source documents (.docx, .csv)       - private, never on GitHub
+  documents\extracted\   text extracted from them by "ingest"     - private
+  quizzes\               generated quiz files (<quiz-id>.json)     - private
+  app\                   the app itself (React PWA)
+  schema\                quiz file format (README.md explains it)
+  .claude\skills\generate-quiz\   the instructions Claude follows to write quizzes
+  todo.md                what's left to do ("Where we are" note at the top)
+  completedTasks.md      what's done, newest first
+  CLAUDE.md              project rules and decisions (Claude reads it every session)
+  GUIDE.txt              this file
+
+documents\ and quizzes\ are gitignored: git never sees them, so they are NOT
+backed up by GitHub. Keep your own backup of quizzes\ (and documents\) if you
+care about them, e.g. a copy on OneDrive or a USB stick.
+
+
+2. WORKING WITH CLAUDE ON THIS PROJECT
+--------------------------------------
+
+- Open the project folder (C:\JopaQuizProject) in Claude Code (desktop app,
+  Code tab).
+- "next task" = Claude takes the first open task from todo.md and does it.
+- "where are we?" = Claude reads todo.md / completedTasks.md and summarises.
+- Claude never commits or pushes. At the end of a task it gives you a commit
+  message; you commit and push yourself (see section 7).
+- After each task Claude updates todo.md, completedTasks.md and, if needed,
+  CLAUDE.md and this guide.
+- For bigger decisions Claude explains the options and lets you choose.
+
+
+3. MAKING A QUIZ FROM A DOCUMENT
+--------------------------------
+
+1. Copy the document into C:\JopaQuizProject\documents\
+   - Supported: .docx (Word) and .csv (Excel: File > Save As > CSV).
+   - Old .doc files: open in Word and "Save As" .docx first.
+   - Word: use real heading styles (Heading 1, Heading 2, ...) for chapter
+     titles; that's how question references find "chapter 2.1".
+   - CSV: first row = column names. Either a fact table (e.g. Pojam;Značenje)
+     or ready-made questions (e.g. Pitanje;A;B;C;D;Točan odgovor).
+
+2. Ask Claude, for example:
+     /generate-quiz documents/Pravilnik.docx
+     make a quiz from documents/Pojmovi.csv
+     make 20 questions from the safety manual
+     make one quiz from Pravilnik.docx and Pojmovi.csv
+   Optional: a number of questions, or a quiz id (file name).
+
+3. Claude then:
+   - extracts the text (npm run ingest),
+   - writes quizzes\<quiz-id>.json,
+   - runs the two checks (format + "every quote really is in the document"),
+   - shows you a summary with a few sample questions.
+   By default it covers the whole document (one question per testable fact)
+   and asks first if that would be more than ~60 questions.
+
+4. Read the samples. If something's off, just say so ("distractors too easy",
+   "skip chapter 5", "fewer questions") and Claude fixes the file.
+
+Notes
+- Questions are written in the document's language.
+- Claude never overwrites an existing quiz file; it asks first. (Device score
+  history is tied to question ids q0001, q0002, ...)
+- Adding new questions to an existing quiz is not supported yet (todo.md,
+  Phase 2).
+
+
+4. CHECKING A QUIZ BY HAND
+--------------------------
+
+From C:\JopaQuizProject in a terminal (PowerShell is fine):
+
+  npm --prefix app run validate-quiz -- quizzes\my-quiz.json
+      -> format check: "OK, 25 questions from 1 source" or a list of errors
+
+  npm --prefix app run check-references -- quizzes\my-quiz.json
+      -> every quote appears at its stated place in the document
+
+  npm --prefix app run ingest -- documents\Pravilnik.docx
+      -> re-extract a document (needed after you edit it;
+         check-references warns when the document changed)
+
+You can open quizzes\*.json in any text editor (VS Code, Notepad) to fix
+a typo. Don't change question ids. Run validate-quiz afterwards.
+
+
+5. GETTING A QUIZ ONTO A DEVICE
+-------------------------------
+
+(NOT BUILT YET - the import screen comes in Phase 3. Planned process:)
+
+1. Copy quizzes\<quiz-id>.json to the device:
+   - Windows: just keep it on the PC, or put it on OneDrive.
+   - Android: email it to yourself, Google Drive, USB cable, ... - anything
+     that lands it in Downloads/Files.
+2. In the app: "Import quiz" -> pick the .json file.
+3. Importing a file with the same quiz id again replaces that quiz (e.g.
+   after fixing a typo). Your score history is kept.
+
+To share with someone: send them the .json file and the app link.
+
+
+6. INSTALLING THE APP ON A DEVICE
+---------------------------------
+
+Link: https://m-e-7.github.io/JopaQuizProject/
+
+Windows (Edge):   open the link -> "App available" icon in the address bar
+                  (or ... menu -> Apps -> Install this site as an app)
+Windows (Chrome): open the link -> install icon in the address bar
+                  (or menu -> Cast, save, and share -> Install page as app)
+Android (Chrome): open the link -> menu (three dots) -> "Install app" /
+                  "Add to Home screen"
+
+Once installed it works offline.
+
+IMPORTANT: clearing the browser's "site data" / "storage" for this site
+DELETES that device's quizzes and score history. Never do that as a "fix".
+
+
+7. UPDATING THE APP (NEW VERSION)
+---------------------------------
+
+1. Claude changes the code and gives you a commit message.
+2. You commit and push to main:
+   - GitHub Desktop: write the message, "Commit to main", then "Push origin"
+   - or in a terminal from C:\JopaQuizProject:
+       git add -A
+       git commit -m "message from Claude"
+       git push
+   (git add -A is safe: documents\ and quizzes\ are ignored.)
+3. GitHub builds and publishes it automatically (~1-2 minutes):
+   https://github.com/M-E-7/JopaQuizProject/actions
+   -> "Deploy to GitHub Pages" should turn green.
+   Only pushes that change app\ or the quiz schema trigger a deploy;
+   doc-only changes don't.
+4. Devices update themselves, but it takes TWO launches while online:
+   the first launch shows the old version and downloads the new one,
+   the second launch runs the new one.
+   - Windows: close and reopen the app window (or F5 / Ctrl+R).
+     If stuck: Ctrl+Shift+R.
+   - Android: swipe the app away in recent apps, reopen. Twice.
+   - GitHub can serve old files for up to ~10 minutes after a deploy.
+5. Which version is a device running? Look at the small grey label at the
+   bottom of the app: "2026-10-18 · a5a8217" = build date · commit.
+   Compare the commit with the latest one on GitHub (repo front page).
+
+
+8. DEVELOPER COMMANDS
+---------------------
+
+Needs only Node.js (version 24). Run these in C:\JopaQuizProject\app
+
+  npm install        after a fresh clone or when dependencies changed
+  npm run dev        local dev server: http://localhost:5173/JopaQuizProject/
+  npm run build      type check + production build (into app\dist)
+  npm run preview    serve the production build: http://localhost:4173/JopaQuizProject/
+  npm run lint       code checks
+
+(The address must end in /JopaQuizProject/ - the bare localhost:5173 shows 404.)
+
+New PC: install Node.js 24 and Git, clone the repo, run "npm install" in app\,
+copy your documents\ and quizzes\ from your backup.
+
+
+9. TROUBLESHOOTING
+------------------
+
+Deploy failed (red X in GitHub Actions)
+  -> open the failed run, copy the red error lines, give them to Claude.
+
+"npm ci" / "npm install" fails half-way on Windows
+  -> a running dev/preview server locks files. Stop it, try again.
+
+CSV letters look wrong (Znaèenje instead of Značenje)
+  -> the file isn't UTF-8. Claude re-runs ingest with --encoding windows-1252
+     (or similar). Better: in Excel save as "CSV UTF-8".
+
+check-references says a quote isn't found
+  -> the quote must be copied from the document exactly. If you edited the
+     document, run ingest again first. Claude fixes these itself during
+     generation.
+
+App on a device still shows the old version
+  -> see section 7 step 4 (two launches). Check the version label.
+     Do NOT clear site data.
+
+
+10. RULES WORTH REMEMBERING
+--------------------------
+
+- The GitHub repo is PUBLIC: never put documents or quizzes into git
+  (they're ignored automatically - don't force-add them).
+- Back up quizzes\ yourself; GitHub doesn't have them.
+- Don't renumber or reuse question ids in a quiz file.
+- Never clear the app's site data on a device.

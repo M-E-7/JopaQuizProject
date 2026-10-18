@@ -4,6 +4,7 @@ Newest first.
 
 ## 2026-10-18
 
+- Added `GUIDE.txt`: the owner's plain-text how-to (what is where, working with Claude, making and checking quizzes, getting quizzes onto devices (planned), installing, updating the app, developer commands, troubleshooting, key rules). `CLAUDE.md` now says to keep it updated after each task
 - Created the question-generation skill `.claude/skills/generate-quiz/SKILL.md` and `npm run check-references`
   - Skill workflow: settle inputs (never overwrite an existing set) → ingest → choose facts → write questions (rules for options, give-aways, explanations, verbatim references, tags, CSV shapes) → write `quizzes/<id>.json` → validate-quiz + check-references until clean → read as a player → report
   - Defaults (user): cover the document (ask if over ~60), mostly recall plus ~¼ understanding, Q&A CSVs keep wording and A–D options; tested by a dry run instead of formal skill-creator evals
