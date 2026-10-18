@@ -5,10 +5,8 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 1 — Project setup
 
-- [ ] Add `vite-plugin-pwa`: web app manifest, app icons, offline caching
-- [ ] Set Vite `base` to `/<repo-name>/` for GitHub Pages
 - [ ] Add a GitHub Actions workflow that builds `app/` and deploys it to GitHub Pages
-  - User: create the public GitHub repo, push, and enable Pages (source: GitHub Actions)
+  - User: in repo `M-E-7/JopaQuizProject` → Settings → Pages, set Source to "GitHub Actions", then push
 - [ ] Verify the deployed app installs and works offline on Windows (Edge) and Android (Chrome)
 - [ ] Document deploy steps in `CLAUDE.md` (dev/build commands are already there)
 
@@ -45,7 +43,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 4 — Nice to have
 
-- [ ] App update notice ("new version available" → reload)
+- [ ] App update notice ("new version available" → reload); switch `registerType` to `'prompt'` in `app/vite.config.ts`
 - [ ] Choose number of questions per run / filter by topic
 - [ ] Statistics per quiz set over time
 - [ ] Layout that works well on both phone and desktop window sizes

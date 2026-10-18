@@ -4,6 +4,14 @@ Newest first.
 
 ## 2026-10-18
 
+- Set Vite `base` to `/JopaQuizProject/` for GitHub Pages (repo `M-E-7/JopaQuizProject` → https://m-e-7.github.io/JopaQuizProject/)
+  - Verified: all asset/icon/manifest URLs, manifest `start_url`/`scope` and service-worker scope use the prefix; app loads and works offline under `/JopaQuizProject/` in the preview build
+- Added PWA support with `vite-plugin-pwa` 2
+  - Web manifest (name, theme/background colour, standalone display, 64/192/512 + maskable icons)
+  - Workbox service worker precaching the whole app shell (13 entries), `autoUpdate` registration
+  - App icon `public/favicon.svg` + generated PNG/ICO/Apple/maskable icons via `@vite-pwa/assets-generator` (`npm run generate-pwa-assets`)
+  - `index.html`: theme-color, description, favicon and apple-touch-icon links; `app-preview` launch config added
+  - Verified: build + lint pass, 0 vulnerabilities; service worker activates and controls the page; with the server stopped the app still loads from cache
 - Scaffolded the app in `app/` (create-vite 9, `react-ts` template: Vite 8, React 19, TypeScript 6, oxlint)
   - Package renamed to `jopa-quiz`; Vite demo content, assets and the duplicate `app/.gitignore` removed
   - Placeholder "JopaQuiz" page with light/dark theme tokens and a simple "?" favicon
