@@ -1,0 +1,102 @@
+{
+  "$schema": "../quiz-set.schema.json",
+  "format": "jopa-quiz",
+  "formatVersion": 1,
+  "id": "workplace-safety-basics",
+  "title": "Workplace safety basics",
+  "description": "Hand-written example showing both reference styles (docx section and csv row). Fictional content.",
+  "language": "en",
+  "createdAt": "2026-10-18T12:00:00Z",
+  "sources": [
+    {
+      "id": "safety-manual",
+      "fileName": "Safety manual.docx",
+      "type": "docx",
+      "title": "Warehouse Safety Manual"
+    },
+    {
+      "id": "glossary",
+      "fileName": "Safety glossary.csv",
+      "type": "csv"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q0001",
+      "question": "In which zone is wearing a helmet mandatory at all times?",
+      "options": ["Zone A", "Zone B", "Zone C", "Only in the loading bay"],
+      "correctIndex": 1,
+      "explanation": "Zone B has overhead cranes operating, so helmets are required at all times there.",
+      "reference": {
+        "sourceId": "safety-manual",
+        "location": {
+          "type": "section",
+          "headingPath": ["2. Protective equipment", "2.1 Helmets"],
+          "paragraph": 1
+        },
+        "quote": "Helmets must be worn at all times in Zone B, where overhead cranes are in operation."
+      },
+      "tags": ["ppe"]
+    },
+    {
+      "id": "q0002",
+      "question": "How often must fire extinguishers be inspected?",
+      "options": ["Every month", "Every three months", "Every six months", "Once a year"],
+      "correctIndex": 0,
+      "explanation": "The manual requires a monthly visual inspection of every extinguisher.",
+      "reference": {
+        "sourceId": "safety-manual",
+        "location": {
+          "type": "section",
+          "headingPath": ["4. Fire safety"]
+        },
+        "quote": "Every fire extinguisher shall be visually inspected once a month and the inspection recorded on its tag."
+      },
+      "tags": ["fire"]
+    },
+    {
+      "id": "q0003",
+      "question": "What does the abbreviation \"PPE\" stand for?",
+      "options": [
+        "Personal protective equipment",
+        "Primary prevention evaluation",
+        "Portable power equipment",
+        "Planned protection exercise"
+      ],
+      "correctIndex": 0,
+      "explanation": "The glossary defines PPE as personal protective equipment, such as helmets, gloves and safety shoes.",
+      "reference": {
+        "sourceId": "glossary",
+        "location": {
+          "type": "row",
+          "row": 7,
+          "columns": ["Term", "Definition"]
+        },
+        "quote": "Term: PPE | Definition: Personal protective equipment (helmets, gloves, safety shoes, goggles)"
+      },
+      "tags": ["ppe", "terminology"]
+    },
+    {
+      "id": "q0004",
+      "question": "What is a \"near miss\"?",
+      "options": [
+        "An accident that caused minor injury",
+        "A safety inspection that was postponed",
+        "An unplanned event that could have caused injury but did not",
+        "A fire alarm that was triggered by mistake"
+      ],
+      "correctIndex": 2,
+      "explanation": "A near miss is an event with the potential for harm where no one was actually hurt.",
+      "reference": {
+        "sourceId": "glossary",
+        "location": {
+          "type": "row",
+          "row": 12,
+          "columns": ["Term", "Definition"]
+        },
+        "quote": "Term: Near miss | Definition: An unplanned event that did not result in injury but had the potential to do so"
+      },
+      "tags": ["terminology"]
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jopa-quiz:quiz-set:v1",
+  "title": "JopaQuiz quiz set",
+  "description": "A set of 4-option multiple-choice questions generated from one or more source documents. Cross-field rules not expressible here (unique ids, reference.sourceId must exist in sources) are enforced by the validation script. See schema/README.md.",
+  "type": "object",
+  "required": ["format", "formatVersion", "id", "title", "language", "createdAt", "sources", "questions"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional path/URL to this schema, for editor support."
+    },
+    "format": {
+      "const": "jopa-quiz",
+      "description": "Marks the file as a JopaQuiz quiz set."
+    },
+    "formatVersion": {
+      "const": 1,
+      "description": "Version of this file format. Bump on breaking changes."
+    },
+    "id": {
+      "$ref": "#/$defs/slug",
+      "description": "Stable id of the quiz set. Importing a file with an existing id replaces that set."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$",
+      "description": "BCP 47 language tag of the questions, e.g. \"hr\" or \"en\". Matches the source documents."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "source": {
+      "type": "object",
+      "required": ["id", "fileName", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug",
+          "description": "Id referenced by question.reference.sourceId. Unique within the set."
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Original file name, e.g. \"Safety manual.docx\"."
+        },
+        "type": {
+          "enum": ["docx", "csv", "pdf", "md", "txt", "other"]
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable document title, if different from the file name."
+        }
+      }
+    },
+    "question": {
+      "type": "object",
+      "required": ["id", "question", "options", "correctIndex", "explanation", "reference"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^q[0-9]{4,}$",
+          "description": "Stable id, unique within the set (e.g. \"q0001\"). Never reused or renumbered; score history refers to it."
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "options": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Exactly 4 answer options. The app shuffles their display order."
+        },
+        "correctIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "Index into options of the single correct answer."
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1,
+          "description": "One or two sentences on why the correct answer is right. Shown after answering."
+        },
+        "reference": { "$ref": "#/$defs/reference" },
+        "tags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/slug" },
+          "description": "Optional topic tags, e.g. [\"ppe\", \"chapter-2\"]."
+        }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "required": ["sourceId", "location", "quote"],
+      "additionalProperties": false,
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/slug",
+          "description": "Id of the entry in sources that contains the answer."
+        },
+        "location": {
+          "oneOf": [
+            { "$ref": "#/$defs/sectionLocation" },
+            { "$ref": "#/$defs/rowLocation" },
+            { "$ref": "#/$defs/pageLocation" }
+          ]
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Verbatim text from the source that contains the answer. For CSV rows: \"Column: value | Column: value\"."
+        }
+      }
+    },
+    "sectionLocation": {
+      "type": "object",
+      "required": ["type", "headingPath"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "section" },
+        "headingPath": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Headings from the top level down to the section, e.g. [\"2. Protective equipment\", \"2.1 Helmets\"]. Empty if the document has no headings."
+        },
+        "paragraph": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Optional 1-based paragraph number within that section."
+        }
+      }
+    },
+    "rowLocation": {
+      "type": "object",
+      "required": ["type", "row", "columns"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "row" },
+        "row": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Row number as shown in a spreadsheet app (the header row is row 1)."
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Column names (header text) that hold the answer."
+        }
+      }
+    },
+    "pageLocation": {
+      "type": "object",
+      "required": ["type", "page"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "page" },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "headingPath": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

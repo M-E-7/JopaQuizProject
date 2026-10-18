@@ -3,22 +3,9 @@
 Tasks are grouped by phase. Work top to bottom; a later phase may depend on decisions made in an earlier one.
 When a task is finished, move it to `completedTasks.md` (with the date) and remove it from here.
 
-## Phase 0 — Decisions
-
-- [ ] **Define the question file format** (JSON)
-  - Quiz-set metadata: id, title, source document (file name + type), language, created date, format version
-  - Question fields: id, question text, 4 options, index of the correct option, short explanation
-  - `sourceReference` that works across document types:
-    - `location.type`: `"section" | "row" | "page"`
-    - docx → heading path (e.g. `["Chapter 2", "Safety"]`) + verbatim quote
-    - csv → row number, column name(s), cell text
-    - page → page number + quote (for PDFs later)
-  - Optional fields: tags/topic, difficulty
-  - Write a JSON Schema file and one hand-written example quiz (one docx-style and one csv-style reference)
-
 ## Phase 1 — Project setup
 
-- [ ] Create folder structure (`documents/`, `quizzes/`, `schema/`, `app/`) and a `.gitignore` covering `documents/`, `quizzes/`, `node_modules/`, `dist/`
+- [ ] Create folder structure (`documents/`, `quizzes/`, `app/`; `schema/` already exists) and a `.gitignore` covering `documents/`, `quizzes/`, `node_modules/`, `dist/`
 - [ ] Scaffold a Vite React + TypeScript app in `app/`
 - [ ] Add `vite-plugin-pwa`: web app manifest, app icons, offline caching
 - [ ] Set Vite `base` to `/<repo-name>/` for GitHub Pages
@@ -29,7 +16,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 
 ## Phase 2 — Question generation
 
-- [ ] Write a validation script that checks quiz JSON against the schema (exactly 4 options, exactly one correct, unique ids, reference present)
+- [ ] Write a validation script: JSON Schema check against `schema/quiz-set.schema.json` plus the cross-field rules listed in `schema/README.md` (unique question/source ids, every `sourceId` exists, unused sources warned)
 - [ ] Document ingestion (pluggable, one reader per format so new formats can be added later)
   - .docx → headings + paragraphs, keeping the heading path for references
   - .csv → header + rows, keeping row numbers for references
