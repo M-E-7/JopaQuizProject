@@ -4,6 +4,12 @@ Newest first.
 
 ## 2026-10-18
 
+- "Import quiz from file" (first UI on the platform layer), plus the list of imported sets and replace on re-import
+  - `app/src/components/ImportQuiz.tsx`: button → `platform.files.pickQuizFile()` → `parseQuizJson()` → save. Refused files show the file name and up to 10 issues ("… and N more"); warnings are shown after a successful import; a set with an id already on the device asks Replace/Cancel and compares question count + last-changed date (device vs. file); history is kept on replace
+  - `app/src/components/QuizList.tsx`: title, question count, import date; `app/src/format.ts` text helpers; button/panel styles and a new `--on-accent` token in `index.css`
+  - File picker: no `accept` filter on Android (its picker can grey out .json files not labelled as JSON); `.json,application/json` elsewhere
+  - Bundle: 219.8 → 381.6 kB (gzip 68.7 → 115.8 kB) with Ajv, ajv-formats, the schema and idb; precached, so only downloaded once per update
+  - Verified: build + lint pass; dev server (picker stubbed): import, replace (3 vs 4 questions, dates shown, run history kept), cancel, broken JSON, non-quiz file, 12 schema errors (10 shown + "2 more"), warning-only import; dark, light and phone width; Android UA drops the filter. Production preview: real file-input `change` path with a simulated file → imports, invalid file refused (Ajv works in the bundle); with the server stopped the app and its stored quiz still load from the service worker. No console errors. GUIDE.txt section 5 updated (and a broken `quizzes\backup\` path fixed). Not tested: a real OS file dialog (browser pane can't open one)
 - Platform interface + IndexedDB storage (two Phase 3 tasks done together, user's choice)
   - `app/src/platform/types.ts`: `QuizStorage` (list/get/save/delete quiz sets, add/list runs, request persistence) and `FileImport` (`pickQuizFile()` → `{ name, text }` or null); `index.ts` exports the `platform` object the UI uses
   - `web/idb-storage.ts`: `idb` library (user's choice), database `jopa-quiz` v1, stores `quizSets` (key `quiz.id`) and `runs` (auto id, index `byQuiz`); upgrade written as `oldVersion < N` steps for future migrations; closes its connection when a newer version needs to upgrade; first save requests `navigator.storage.persist()`. Replace keeps history, delete removes the set's runs

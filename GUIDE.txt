@@ -4,8 +4,7 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-18 (you can now add questions to an existing quiz;
-the app's "Import quiz" screen is not built yet - Phase 3).
+Last updated: 2026-10-18 (the app can now import quiz files - section 5).
 
 Contents
   1. What is where
@@ -102,7 +101,7 @@ Adding questions to an existing quiz
   file in documents\), or another document should join the quiz, ask e.g.:
      add questions to quizzes/epso-verbalno-zakljucivanje.json from the
      updated EPSO_Verbal_skripta_HR_knjiga.docx
-- Claude first saves a backup in quizzesackup\, then:
+- Claude first saves a backup in quizzes\backup\, then:
    - fixes existing questions whose text changed in the document (they keep
      their id, so score history stays),
    - removes questions whose fact is gone from the document (their id is
@@ -142,15 +141,22 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
 5. GETTING A QUIZ ONTO A DEVICE
 -------------------------------
 
-(NOT BUILT YET - the import screen comes in Phase 3. Planned process:)
-
 1. Copy quizzes\<quiz-id>.json to the device:
    - Windows: just keep it on the PC, or put it on OneDrive.
    - Android: email it to yourself, Google Drive, USB cable, ... - anything
      that lands it in Downloads/Files.
-2. In the app: "Import quiz" -> pick the .json file.
-3. Importing a file with the same quiz id again replaces that quiz (e.g.
-   after fixing a typo). Your score history is kept.
+2. In the app: "Import quiz from file" -> pick the .json file.
+   - The quiz appears in the list with its number of questions.
+   - On Android the picker shows all files; just pick the .json one.
+   - A wrong or broken file is refused with a list of what's wrong (give
+     that list to Claude). "Warnings" after a successful import don't stop
+     anything; the quiz works.
+3. Importing a file with the same quiz id again (e.g. after Claude fixed a
+   typo or added questions) asks "Replace it?" and shows the number of
+   questions and the date on the device vs. in the file, so you don't
+   replace a newer version with an older one. Your score history is kept.
+
+(Playing a quiz and deleting one come in the next app updates.)
 
 To share with someone: send them the .json file and the app link.
 
