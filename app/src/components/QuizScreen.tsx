@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { platform, type QuestionResult } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
 import { countResults, type Answer } from '../score.ts'
+import { shuffleQuestions } from '../shuffle.ts'
 import QuizSummary from './QuizSummary.tsx'
 import SourceReference from './SourceReference.tsx'
 
@@ -73,6 +74,8 @@ function Quiz({
   onRestart: () => void
   onLeaveGuardChange: (needed: boolean) => void
 }) {
+  /** This run's order of questions and options; Start again remounts, so it reshuffles. */
+  const [questions] = useState(() => shuffleQuestions(quiz.questions))
   const [index, setIndex] = useState(0)
   /** Option picked for the current question; set means answered. */
   const [chosen, setChosen] = useState<number>()
@@ -81,7 +84,7 @@ function Quiz({
   const feedbackRef = useRef<HTMLDivElement>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
 
-  const total = quiz.questions.length
+  const total = questions.length
   const finished = index >= total
 
   useEffect(() => {
@@ -117,7 +120,7 @@ function Quiz({
     return (
       <QuizSummary
         quiz={quiz}
-        questions={quiz.questions}
+        questions={questions}
         answers={answers}
         onRestart={onRestart}
         onQuit={onQuit}
@@ -125,7 +128,7 @@ function Quiz({
     )
   }
 
-  const question = quiz.questions[index]
+  const question = questions[index]
   const answered = chosen !== undefined
   const correct = chosen === question.correctIndex
 

@@ -4,7 +4,7 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-19 (end-of-quiz summary - section 4).
+Last updated: 2026-10-19 (shuffled questions and answers - section 4).
 
 Contents
   1. What is where
@@ -165,7 +165,8 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
    questions and the date on the device vs. in the file, so you don't
    replace a newer version with an older one. Your score history is kept.
 
-4. Playing: "Start" next to a quiz. Tap an answer - it counts at once (no
+4. Playing: "Start" next to a quiz. The questions, and the answers within
+   each question, come in a new random order every time. Tap an answer - it counts at once (no
    undo), the right one turns green and the explanation appears; "Next".
    "Quit" or the back button returns to the list (it asks first if you've
    answered something, because scores aren't saved yet).
@@ -177,7 +178,7 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
    its score history from that device only (other devices keep theirs). You
    can import the file again, but the history doesn't come back.
 
-(Saved score history and shuffling come in the next app updates.)
+(Saved score history comes in the next app update.)
 
 To share with someone: send them the .json file and the app link.
 

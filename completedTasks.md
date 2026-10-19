@@ -4,6 +4,11 @@ Newest first.
 
 ## 2026-10-19
 
+- Shuffle question order and option order
+  - Always on, no switch (user's choice): every run, Start again and reload get a new random order of the questions and of each question's 4 options
+  - New `app/src/shuffle.ts`: `shuffled()` (Fisher–Yates copy, reusable for Exam mode's random pick) and `shuffleQuestions()` (copies with permuted `options` and remapped `correctIndex`); `QuizScreen` shuffles once per mount, in memory only — stored ids and results unchanged, no DB change
+  - Options like "A i B" / "Sve navedeno" in Q&A CSVs are not handled for now (user's choice)
+  - Verified: Node check over 20,000 runs (all 24 option orders and all 120 orders of 5 questions appear, first question evenly spread, correct text always at `correctIndex`, input not mutated); build + lint pass; dev server with a 4-question test set: order 2, 3, 4, 1 with options moved, right/wrong feedback and the green mark on the correct text, summary "50% · 2 of 4 correct" with Questions 1 and 3 showing the right "Your answer" / "Correct answer" texts; Start again → new order, score reset; no console errors
 - End-of-quiz summary (score, percentage, list of missed questions)
   - New `QuizSummary.tsx` (made so Exam mode can reuse it: takes the run's questions + answers, an unanswered question counts as missed and shows "Not answered"): "Quiz finished" heading (gets focus), large percentage + "N of M correct", then "Missed questions (K)" or "No missed questions — all correct."
   - Missed questions collapsed, tap to open (user's choice): `<details>` row with "Question N" (position in the run) + 2-line preview. Opened, it shows the full question, ✗ your answer and ✓ correct answer (both shown, user's choice; option text, no letters), the explanation, `SourceReference`
