@@ -57,6 +57,22 @@ export function runScore(run: QuizRun, questionIds: ReadonlySet<string>): RunSco
   }
 }
 
+/**
+ * Ids of the set's questions whose most recent answer, in any run (`runs` oldest
+ * first), was wrong or not given. Answering one right later takes it out; a
+ * question never asked isn't in it.
+ */
+export function stillMissedIds(runs: QuizRun[], questionIds: ReadonlySet<string>): Set<string> {
+  const latest = new Map<string, boolean>()
+  for (const run of runs) {
+    const correct = new Map(run.results.map((r) => [r.questionId, r.correct]))
+    for (const id of run.questionIds ?? run.results.map((r) => r.questionId)) {
+      if (questionIds.has(id)) latest.set(id, correct.get(id) ?? false)
+    }
+  }
+  return new Set([...latest].filter(([, correct]) => !correct).map(([id]) => id))
+}
+
 export interface HistorySummary {
   /** Runs that still have questions in the set. */
   count: number

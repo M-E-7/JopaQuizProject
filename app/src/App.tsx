@@ -16,12 +16,13 @@ interface Screen {
 /**
  * Screens use browser history without changing the URL: Start pushes `{ quizId }`
  * (mode choice) and picking a mode pushes `{ quizId, mode }`, so Back (Android's
- * back button too) goes run → mode choice → list.
+ * back button too) goes run → mode choice → list. "Retry missed" on a summary
+ * replaces the finished run's entry.
  */
 function screenFromState(state: unknown): Screen {
   const { quizId, mode } = (state ?? {}) as { quizId?: unknown; mode?: unknown }
   if (typeof quizId !== 'string') return {}
-  return { quizId, mode: mode === 'study' || mode === 'exam' ? mode : undefined }
+  return { quizId, mode: mode === 'study' || mode === 'exam' || mode === 'retry' ? mode : undefined }
 }
 
 /** The stored sets plus each one's score history, counted against its current questions. */
@@ -94,6 +95,12 @@ function App() {
     setScreen(next)
   }
 
+  /** A finished run's summary → a run of another mode in its place, so Back still goes to the mode choice. */
+  function switchMode(next: QuizMode) {
+    history.replaceState({ quizId, mode: next }, '')
+    setScreen({ quizId, mode: next })
+  }
+
   /** One step back: run → mode choice → list. Asks first if a run would lose answers. */
   function requestBack() {
     if (leaveGuard.current) setConfirmingLeave(true)
@@ -133,6 +140,7 @@ function App() {
             quizId={quizId}
             mode={mode}
             onChooseMode={(m) => show({ quizId, mode: m })}
+            onSwitchMode={switchMode}
             onBack={requestBack}
             onBackToList={backToList}
             onLeaveGuardChange={setLeaveGuard}

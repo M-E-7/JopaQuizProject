@@ -1,5 +1,5 @@
 import { formatDate, plural } from '../format.ts'
-import type { QuizSetSummary } from '../platform/index.ts'
+import type { QuizMode, QuizSetSummary } from '../platform/index.ts'
 import type { HistorySummary } from '../score.ts'
 
 export default function QuizList({
@@ -40,13 +40,15 @@ export default function QuizList({
   )
 }
 
-/** "Last: Exam 85% (17 of 20) · 18 Oct 2026 · 3 runs" (latest run of either mode); nothing for a set never finished. */
+const MODE_LABELS: Record<QuizMode, string> = { study: 'Study', exam: 'Exam', retry: 'Retry' }
+
+/** "Last: Exam 85% (17 of 20) · 18 Oct 2026 · 3 runs" (latest run of any mode); nothing for a set never finished. */
 function LastScore({ history }: { history: HistorySummary | undefined }) {
   const last = history?.last
   if (!last) return null
   return (
     <span className="muted">
-      Last: {last.mode === 'exam' ? 'Exam' : 'Study'} {last.percent}% ({last.correct} of {last.total}) ·{' '}
+      Last: {MODE_LABELS[last.mode]} {last.percent}% ({last.correct} of {last.total}) ·{' '}
       {formatDate(last.finishedAt)} ·{' '}
       {plural(history.count, 'run')}
     </span>

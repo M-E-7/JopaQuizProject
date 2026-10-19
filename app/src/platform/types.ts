@@ -32,7 +32,8 @@ export interface QuestionResult {
   correct: boolean
 }
 
-export type QuizMode = 'study' | 'exam'
+/** `retry` asks the set's still-missed questions, Study-style. */
+export type QuizMode = 'study' | 'exam' | 'retry'
 
 /** Exam settings of a quiz set, kept on the device (and on replace) until the set is deleted. */
 export interface ExamSettings {

@@ -1,34 +1,52 @@
 import { useEffect, useRef, useState } from 'react'
 import { OPTION_LETTERS } from '../format.ts'
-import { platform, type QuestionResult } from '../platform/index.ts'
+import type { QuestionResult, QuizRun } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
-import { countResults, type Answer } from '../score.ts'
+import { countResults, type Answer, type RunScore } from '../score.ts'
 import { shuffleQuestions } from '../shuffle.ts'
 import QuizSummary from './QuizSummary.tsx'
 import SourceReference from './SourceReference.tsx'
-import { usePreviousRun } from './usePreviousRun.ts'
 
-/** Study mode: every question, each answer checked at once with the explanation and source. */
+/**
+ * Study mode: every question, each answer checked at once with the explanation
+ * and source. Retry mode is the same with only the set's still-missed questions.
+ */
 export default function StudyRun({
   quiz,
+  mode,
+  questions: toAsk,
+  previous,
+  saveRun,
+  missedCount,
+  onRetryMissed,
   onQuit,
   onBackToList,
   onRestart,
   onLeaveGuardChange,
 }: {
   quiz: QuizSet
+  mode: 'study' | 'retry'
+  /** The questions to ask: all of them, or the still-missed ones for a retry. Read at mount. */
+  questions: QuizQuestion[]
+  /** The set's latest saved run of this mode, for "Last time". Read at mount. */
+  previous: RunScore | undefined
+  saveRun: (run: Omit<QuizRun, 'id'>) => Promise<void>
+  /** Still-missed questions in the set, kept up to date as runs are saved. */
+  missedCount: number
+  onRetryMissed: () => void
   onQuit: () => void
   onBackToList: () => void
   onRestart: () => void
   onLeaveGuardChange: (needed: boolean) => void
 }) {
   /** This run's order of questions and options; Start again remounts, so it reshuffles. */
-  const [questions] = useState(() => shuffleQuestions(quiz.questions))
+  const [questions] = useState(() => shuffleQuestions(toAsk))
+  const [lastTime] = useState(previous)
   const [index, setIndex] = useState(0)
   /** Option picked for the current question; set means answered. */
   const [chosen, setChosen] = useState<number>()
   const [answers, setAnswers] = useState<Answer[]>([])
-  const previous = usePreviousRun(quiz, 'study')
+  const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState<string>()
   const questionRef = useRef<HTMLParagraphElement>(null)
   const feedbackRef = useRef<HTMLDivElement>(null)
@@ -69,27 +87,48 @@ export default function StudyRun({
   }
 
   function save() {
-    platform.storage
-      .addRun({
-        quizId: quiz.id,
-        mode: 'study',
-        finishedAt: new Date().toISOString(),
-        questionIds: questions.map((q) => q.id),
-        // The picked option stays in memory; history keeps only right/wrong.
-        results: answers.map(({ questionId, correct }) => ({ questionId, correct })),
-      })
-      .catch((e: Error) => setSaveError(e.message))
+    saveRun({
+      quizId: quiz.id,
+      mode,
+      finishedAt: new Date().toISOString(),
+      questionIds: questions.map((q) => q.id),
+      // The picked option stays in memory; history keeps only right/wrong.
+      results: answers.map(({ questionId, correct }) => ({ questionId, correct })),
+    }).then(
+      () => setSaved(true),
+      (e: Error) => setSaveError(e.message),
+    )
+  }
+
+  // A reload (or Back/Forward) can land on a retry with nothing left to retry.
+  if (total === 0) {
+    return (
+      <section className="quiz">
+        <p className="muted quiz-title">{quiz.title}</p>
+        <div className="panel">
+          <p>No missed questions to retry right now.</p>
+          <div className="actions">
+            <button type="button" className="button" onClick={onQuit}>
+              Back
+            </button>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   if (finished) {
     return (
       <QuizSummary
         quiz={quiz}
-        mode="study"
+        mode={mode}
         questions={questions}
         answers={answers}
-        previous={previous}
+        previous={lastTime}
         saveError={saveError}
+        // Counted once this run is stored, so it includes this run's answers.
+        retryCount={saved ? missedCount : undefined}
+        onRetryMissed={onRetryMissed}
         onRestart={onRestart}
         onBackToList={onBackToList}
       />
@@ -105,6 +144,7 @@ export default function StudyRun({
       <header className="quiz-header">
         <div>
           <p className="muted">{quiz.title}</p>
+          {mode === 'retry' && <p className="muted">Retry missed</p>}
           <p>
             <strong>
               Question {index + 1} of {total}

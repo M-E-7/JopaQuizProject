@@ -4,7 +4,7 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-19 (marking questions in an exam - section 5).
+Last updated: 2026-10-19 (Retry missed questions - section 5).
 
 Contents
   1. What is where
@@ -180,7 +180,12 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
      tap a row to go back to it. "Hand in" there ends the exam (it asks
      first if some are unanswered or still marked); at 0:00 it is handed
      in automatically. Unanswered questions count as wrong.
-   Either way the questions, and the answers within each question, come in
+   - Missed questions ("Retry missed"): only the questions you got wrong
+     or left unanswered the last time you saw them, checked at once like
+     Study. Answer one right and it drops off the list; get it wrong again
+     (in any mode) and it stays. Greyed out when there's nothing to retry.
+     The end-of-run screen also has a "Retry missed (N)" button.
+   In every mode the questions, and the answers within each question, come in
    a new random order every time. "Quit" or the back button goes back to
    the mode choice (it asks first if you've answered something, because a
    run left half-way isn't saved); back again returns to the list.
@@ -192,8 +197,6 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
    one with its mode and the number of runs ("Last: Exam 85% (17 of 20) ·
    date · 3 runs"). After a re-import, questions that were removed no
    longer count.
-
-count.
 
 5. Deleting: "Delete" next to a quiz, then confirm. It removes the quiz and
    its score history from that device only (other devices keep theirs). You

@@ -5,8 +5,14 @@ import { formatDate, formatDuration } from '../format.ts'
 import { countResults, scorePercent, type Answer, type RunScore } from '../score.ts'
 import SourceReference from './SourceReference.tsx'
 
+const SUMMARY_HEADINGS: Record<QuizMode, string> = {
+  study: 'Quiz finished',
+  exam: 'Exam finished',
+  retry: 'Retry finished',
+}
+
 /**
- * End of a run (Study or Exam): score, percentage, time used for an exam, and
+ * End of a run (Study, Exam or Retry): score, percentage, time used for an exam, and
  * the missed questions (wrong or not answered), each collapsed until tapped.
  */
 export default function QuizSummary({
@@ -17,6 +23,8 @@ export default function QuizSummary({
   answers,
   previous,
   saveError,
+  retryCount,
+  onRetryMissed,
   onRestart,
   onBackToList,
 }: {
@@ -31,6 +39,10 @@ export default function QuizSummary({
   previous?: RunScore
   /** Set if this run couldn't be saved. */
   saveError?: string
+  /** Still-missed questions in the set once this run is saved; no Retry button while undefined or 0. */
+  retryCount?: number
+  onRetryMissed: () => void
+  /** Same mode again (not offered after a retry: its next round is Retry missed). */
   onRestart: () => void
   onBackToList: () => void
 }) {
@@ -53,7 +65,7 @@ export default function QuizSummary({
       <div>
         <p className="muted quiz-title">{quiz.title}</p>
         <h1 ref={headingRef} tabIndex={-1} className="summary-heading">
-          {mode === 'exam' ? 'Exam finished' : 'Quiz finished'}
+          {SUMMARY_HEADINGS[mode]}
         </h1>
       </div>
 
@@ -99,9 +111,16 @@ export default function QuizSummary({
       )}
 
       <div className="actions">
-        <button type="button" className="button primary" onClick={onRestart}>
-          Start again
-        </button>
+        {mode !== 'retry' && (
+          <button type="button" className="button primary" onClick={onRestart}>
+            Start again
+          </button>
+        )}
+        {retryCount !== undefined && retryCount > 0 && (
+          <button type="button" className={mode === 'retry' ? 'button primary' : 'button'} onClick={onRetryMissed}>
+            Retry missed ({retryCount})
+          </button>
+        )}
         <button type="button" className="button" onClick={onBackToList}>
           Back to list
         </button>

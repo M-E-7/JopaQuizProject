@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { examSettingsFor } from '../exam.ts'
-import { platform, type ExamSettings, type QuizMode } from '../platform/index.ts'
+import { platform, type ExamSettings, type QuizMode, type QuizRun } from '../platform/index.ts'
 import type { QuizSet } from '../quiz/types.ts'
+import { historySummary, stillMissedIds } from '../score.ts'
 import ExamRun from './ExamRun.tsx'
 import ModeChoice from './ModeChoice.tsx'
 import StudyRun from './StudyRun.tsx'
@@ -12,11 +13,12 @@ type Load =
   | { status: 'failed'; message: string }
   | { status: 'ready'; quiz: QuizSet; examSettings: ExamSettings }
 
-/** One quiz set: its mode choice, or a Study / Exam run. */
+/** One quiz set: its mode choice, or a Study / Exam / Retry run. Holds the set's run history. */
 export default function QuizScreen({
   quizId,
   mode,
   onChooseMode,
+  onSwitchMode,
   onBack,
   onBackToList,
   onLeaveGuardChange,
@@ -25,7 +27,10 @@ export default function QuizScreen({
   quizId: string
   /** Undefined on the mode choice. */
   mode: QuizMode | undefined
+  /** From the mode choice: a run on top of it. */
   onChooseMode: (mode: QuizMode) => void
+  /** From a finished run: a run of another mode in its place. */
+  onSwitchMode: (mode: QuizMode) => void
   /** One step back (run → mode choice → list); asks first if answers would be lost. */
   onBack: () => void
   onBackToList: () => void
@@ -35,14 +40,22 @@ export default function QuizScreen({
   onBackOverrideChange: (handler: (() => void) | undefined) => void
 }) {
   const [load, setLoad] = useState<Load>({ status: 'loading' })
+  /** The set's saved runs, oldest first, plus the ones finished in this visit. */
+  const [runs, setRuns] = useState<QuizRun[]>([])
   /** Settings picked on the mode choice in this visit; until then the stored ones. */
   const [pickedSettings, setPickedSettings] = useState<ExamSettings>()
   /** Bumped by "Start again": a new key remounts the run with fresh state. */
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    Promise.all([platform.storage.getQuizSet(quizId), platform.storage.getExamSettings(quizId)]).then(
-      ([stored, settings]) =>
+    Promise.all([
+      platform.storage.getQuizSet(quizId),
+      platform.storage.getExamSettings(quizId),
+      // Without the history there's just no "Last time" and nothing to retry.
+      platform.storage.listRuns(quizId).catch((): QuizRun[] => []),
+    ]).then(
+      ([stored, settings, storedRuns]) => {
+        setRuns(storedRuns)
         setLoad(
           stored
             ? {
@@ -51,7 +64,8 @@ export default function QuizScreen({
                 examSettings: examSettingsFor(settings, stored.quiz.questions.length),
               }
             : { status: 'missing' },
-        ),
+        )
+      },
       (e: Error) => setLoad({ status: 'failed', message: e.message }),
     )
   }, [quizId])
@@ -74,7 +88,11 @@ export default function QuizScreen({
     )
   }
 
+  const { quiz } = load
   const examSettings = pickedSettings ?? load.examSettings
+  const questionIds = new Set(quiz.questions.map((q) => q.id))
+  const missedIds = stillMissedIds(runs, questionIds)
+  const missed = quiz.questions.filter((q) => missedIds.has(q.id))
 
   function startExam(settings: ExamSettings) {
     setPickedSettings(settings)
@@ -83,23 +101,42 @@ export default function QuizScreen({
     onChooseMode('exam')
   }
 
+  /** Stores a finished run; it then counts for the retry pool and the next "Last time". */
+  async function saveRun(run: Omit<QuizRun, 'id'>) {
+    const id = await platform.storage.addRun(run)
+    setRuns((r) => [...r, { ...run, id }])
+  }
+
+  const restart = () => setAttempt((a) => a + 1)
   const runProps = {
-    quiz: load.quiz,
+    quiz,
+    // The run keeps the value it mounted with, so it stays "the run before this one".
+    previous: mode && historySummary(runs, questionIds, mode).last,
+    saveRun,
+    missedCount: missed.length,
+    // A retry's summary starts the next retry on the questions still missed.
+    onRetryMissed: mode === 'retry' ? restart : () => onSwitchMode('retry'),
     onQuit: onBack,
     onBackToList,
-    onRestart: () => setAttempt((a) => a + 1),
+    onRestart: restart,
     onLeaveGuardChange,
   }
-  if (mode === 'study') return <StudyRun key={attempt} {...runProps} />
+  // The mode is in the key so a Study run's summary → Retry mounts a fresh StudyRun.
+  const key = `${mode}-${attempt}`
+  if (mode === 'study' || mode === 'retry') {
+    return <StudyRun key={key} mode={mode} questions={mode === 'retry' ? missed : quiz.questions} {...runProps} />
+  }
   if (mode === 'exam') return (
-      <ExamRun key={attempt} settings={examSettings} onBackOverrideChange={onBackOverrideChange} {...runProps} />
+      <ExamRun key={key} settings={examSettings} onBackOverrideChange={onBackOverrideChange} {...runProps} />
     )
   return (
     <ModeChoice
-      quiz={load.quiz}
+      quiz={quiz}
       examSettings={examSettings}
+      missedCount={missed.length}
       onStudy={() => onChooseMode('study')}
       onExam={startExam}
+      onRetry={() => onChooseMode('retry')}
       onBack={onBack}
     />
   )

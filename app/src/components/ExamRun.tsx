@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatDuration, OPTION_LETTERS, plural } from '../format.ts'
-import { platform, type ExamRunInfo, type ExamSettings } from '../platform/index.ts'
+import type { ExamRunInfo, ExamSettings, QuizRun } from '../platform/index.ts'
 import type { QuizSet } from '../quiz/types.ts'
-import type { Answer } from '../score.ts'
+import type { Answer, RunScore } from '../score.ts'
 import { shuffleQuestions } from '../shuffle.ts'
 import ConfirmDialog from './ConfirmDialog.tsx'
 import ExamReview, { type ReviewOrder } from './ExamReview.tsx'
 import QuizSummary from './QuizSummary.tsx'
-import { usePreviousRun } from './usePreviousRun.ts'
 
 /** Seconds left at which the countdown turns red. */
 const LOW_TIME_SECONDS = 60
@@ -19,6 +18,10 @@ const LOW_TIME_SECONDS = 60
 export default function ExamRun({
   quiz,
   settings,
+  previous,
+  saveRun,
+  missedCount,
+  onRetryMissed,
   onQuit,
   onBackToList,
   onRestart,
@@ -27,6 +30,12 @@ export default function ExamRun({
 }: {
   quiz: QuizSet
   settings: ExamSettings
+  /** The set's latest saved exam, for "Last time". Read at mount. */
+  previous: RunScore | undefined
+  saveRun: (run: Omit<QuizRun, 'id'>) => Promise<void>
+  /** Still-missed questions in the set, kept up to date as runs are saved. */
+  missedCount: number
+  onRetryMissed: () => void
   onQuit: () => void
   onBackToList: () => void
   onRestart: () => void
@@ -49,7 +58,8 @@ export default function ExamRun({
   const [reviewOrder, setReviewOrder] = useState<ReviewOrder>('exam')
   const [confirmingHandIn, setConfirmingHandIn] = useState(false)
   const [result, setResult] = useState<{ answers: Answer[]; exam: ExamRunInfo }>()
-  const previous = usePreviousRun(quiz, 'exam')
+  const [lastTime] = useState(previous)
+  const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState<string>()
   const questionRef = useRef<HTMLParagraphElement>(null)
   const reviewHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -136,17 +146,18 @@ export default function ExamRun({
     setConfirmingHandIn(false)
     setResult({ answers, exam })
     // Saved from the hand-in (not an effect), so the exam is stored exactly once.
-    platform.storage
-      .addRun({
-        quizId: quiz.id,
-        mode: 'exam',
-        finishedAt: new Date().toISOString(),
-        questionIds: questions.map((q) => q.id),
-        // The picked option stays in memory; history keeps only right/wrong.
-        results: answers.map(({ questionId, correct }) => ({ questionId, correct })),
-        exam,
-      })
-      .catch((e: Error) => setSaveError(e.message))
+    saveRun({
+      quizId: quiz.id,
+      mode: 'exam',
+      finishedAt: new Date().toISOString(),
+      questionIds: questions.map((q) => q.id),
+      // The picked option stays in memory; history keeps only right/wrong.
+      results: answers.map(({ questionId, correct }) => ({ questionId, correct })),
+      exam,
+    }).then(
+      () => setSaved(true),
+      (e: Error) => setSaveError(e.message),
+    )
   }
 
   if (result) {
@@ -157,8 +168,11 @@ export default function ExamRun({
         exam={result.exam}
         questions={questions}
         answers={result.answers}
-        previous={previous}
+        previous={lastTime}
         saveError={saveError}
+        // Counted once this exam is stored, so it includes this exam's answers.
+        retryCount={saved ? missedCount : undefined}
+        onRetryMissed={onRetryMissed}
         onRestart={onRestart}
         onBackToList={onBackToList}
       />

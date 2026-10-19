@@ -4,19 +4,27 @@ import { plural } from '../format.ts'
 import type { ExamSettings } from '../platform/index.ts'
 import type { QuizSet } from '../quiz/types.ts'
 
-/** After Start: Study, or Exam with its settings (question count and minutes, adjustable here). */
+/**
+ * After Start: Study, Exam with its settings (question count and minutes,
+ * adjustable here), or Retry of the still-missed questions.
+ */
 export default function ModeChoice({
   quiz,
   examSettings,
+  missedCount,
   onStudy,
   onExam,
+  onRetry,
   onBack,
 }: {
   quiz: QuizSet
   /** Prefilled into the exam fields. */
   examSettings: ExamSettings
+  /** Questions whose latest answer was wrong or not given. */
+  missedCount: number
   onStudy: () => void
   onExam: (settings: ExamSettings) => void
+  onRetry: () => void
   onBack: () => void
 }) {
   const available = quiz.questions.length
@@ -116,6 +124,26 @@ export default function ModeChoice({
           </button>
         </div>
       </form>
+
+      <section className="panel mode" aria-labelledby="retry-heading">
+        <h2 id="retry-heading">Missed questions</h2>
+        {missedCount > 0 ? (
+          <p>
+            {plural(missedCount, 'question')} you got wrong or left unanswered the last time you saw {missedCount === 1 ? 'it' : 'them'}. Each answer is checked at once; answer one right
+            and it leaves this list.
+          </p>
+        ) : (
+          <p>
+            No missed questions right now. Questions you get wrong or leave unanswered in a run show up here until you
+            answer them right.
+          </p>
+        )}
+        <div className="actions">
+          <button type="button" className="button primary" disabled={missedCount === 0} onClick={onRetry}>
+            Retry missed
+          </button>
+        </div>
+      </section>
     </section>
   )
 }
