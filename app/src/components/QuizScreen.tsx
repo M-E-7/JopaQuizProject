@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { platform, type QuestionResult } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
-import { countResults, type Answer } from '../score.ts'
+import { countResults, historySummary, type Answer, type RunScore } from '../score.ts'
 import { shuffleQuestions } from '../shuffle.ts'
 import QuizSummary from './QuizSummary.tsx'
 import SourceReference from './SourceReference.tsx'
@@ -80,6 +80,9 @@ function Quiz({
   /** Option picked for the current question; set means answered. */
   const [chosen, setChosen] = useState<number>()
   const [answers, setAnswers] = useState<Answer[]>([])
+  /** Score of the set's latest saved run before this one, for the summary. */
+  const [previous, setPrevious] = useState<RunScore>()
+  const [saveError, setSaveError] = useState<string>()
   const questionRef = useRef<HTMLParagraphElement>(null)
   const feedbackRef = useRef<HTMLDivElement>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
@@ -91,6 +94,22 @@ function Quiz({
     onLeaveGuardChange(answers.length > 0 && !finished)
   }, [answers.length, finished, onLeaveGuardChange])
   useEffect(() => () => onLeaveGuardChange(false), [onLeaveGuardChange])
+
+  // Loaded before this run is saved; Start again remounts, so it then finds the run just finished.
+  useEffect(() => {
+    let cancelled = false
+    const questionIds = new Set(quiz.questions.map((q) => q.id))
+    platform.storage.listRuns(quiz.id).then(
+      (runs) => {
+        if (!cancelled) setPrevious(historySummary(runs, questionIds).last)
+      },
+      // Without it the summary just leaves out "Last time".
+      () => {},
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [quiz])
 
   // New question: start at the top, with keyboard focus on the question.
   useEffect(() => {
@@ -112,8 +131,21 @@ function Quiz({
   }
 
   function next() {
+    // Saved from the click (not an effect), so a finished run is stored exactly once.
+    if (index + 1 >= total) save()
     setChosen(undefined)
     setIndex((i) => i + 1)
+  }
+
+  function save() {
+    platform.storage
+      .addRun({
+        quizId: quiz.id,
+        finishedAt: new Date().toISOString(),
+        // The picked option stays in memory; history keeps only right/wrong.
+        results: answers.map(({ questionId, correct }) => ({ questionId, correct })),
+      })
+      .catch((e: Error) => setSaveError(e.message))
   }
 
   if (finished) {
@@ -122,6 +154,8 @@ function Quiz({
         quiz={quiz}
         questions={questions}
         answers={answers}
+        previous={previous}
+        saveError={saveError}
         onRestart={onRestart}
         onQuit={onQuit}
       />

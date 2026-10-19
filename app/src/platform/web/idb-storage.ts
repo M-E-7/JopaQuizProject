@@ -95,6 +95,7 @@ function summary({ quiz, importedAt }: StoredQuizSet): QuizSetSummary {
     description: quiz.description,
     language: quiz.language,
     questionCount: quiz.questions.length,
+    questionIds: quiz.questions.map((q) => q.id),
     importedAt,
     updatedAt: quiz.updatedAt,
   }

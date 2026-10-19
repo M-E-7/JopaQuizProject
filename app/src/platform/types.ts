@@ -20,6 +20,8 @@ export interface QuizSetSummary {
   description?: string
   language: string
   questionCount: number
+  /** Current question ids, to count score history against. */
+  questionIds: string[]
   importedAt: string
   updatedAt?: string
 }

@@ -4,6 +4,12 @@ Newest first.
 
 ## 2026-10-19
 
+- Save score history per quiz set
+  - Tapping Finish saves the run with `platform.storage.addRun()` (date + `{ questionId, correct }` per question; the picked option isn't stored). It's saved from the click handler, so StrictMode can't save it twice. Quit / Back mid-run saves nothing. No DB change (no runs were stored anywhere before)
+  - `score.ts`: `currentResults()` (keeps results whose question is still in the set, which also drops `removedQuestionIds`), `runScore()` (recounted score, or undefined if none of the run's questions are left) and `historySummary()` (counted runs + latest). Stored runs are never rewritten, only ignored when counted
+  - Shown in two places (user's choice): the quiz list "Last: 85% (17 of 20) · date · N runs" (App loads the runs with the list and reloads them on returning from a quiz), and the summary's muted "Last time: …" for the previous run. A failed save shows an error panel on the summary
+  - `QuizSetSummary` gained `questionIds`
+  - Verified: Node check of the score functions (removed/vanished ids, empty run, newest counted run, rounding); build + lint pass; dev server with a 4-question set: run 1 at 2/4 → no "Last time", 1 run stored, results without `chosen`; Start again at 4/4 → "Last time: 50% (2 of 4)"; list "Last: 100% (4 of 4) · 2 runs"; one answer then Quit/Leave → still 2 runs. Added a run with only q0004, then re-saved the set without q0004 (`removedQuestionIds`, validates) → list "3 questions · Last: 100% (3 of 3) · 2 runs" (all 3 runs still stored); next run at 1/3 → "Last time: 100% (3 of 3)"; list at 375px light; no console errors. Save-failure panel not triggered (not checked)
 - Shuffle question order and option order
   - Always on, no switch (user's choice): every run, Start again and reload get a new random order of the questions and of each question's 4 options
   - New `app/src/shuffle.ts`: `shuffled()` (Fisher–Yates copy, reusable for Exam mode's random pick) and `shuffleQuestions()` (copies with permuted `options` and remapped `correctIndex`); `QuizScreen` shuffles once per mount, in memory only — stored ids and results unchanged, no DB change

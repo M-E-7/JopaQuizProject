@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
-import { countResults, scorePercent, type Answer } from '../score.ts'
+import { formatDate } from '../format.ts'
+import { countResults, scorePercent, type Answer, type RunScore } from '../score.ts'
 import SourceReference from './SourceReference.tsx'
 
 /**
@@ -11,6 +12,8 @@ export default function QuizSummary({
   quiz,
   questions,
   answers,
+  previous,
+  saveError,
   onRestart,
   onQuit,
 }: {
@@ -18,6 +21,10 @@ export default function QuizSummary({
   /** The run's questions, in the order they were asked. */
   questions: QuizQuestion[]
   answers: Answer[]
+  /** The set's previous saved run, shown as "Last time". */
+  previous?: RunScore
+  /** Set if this run couldn't be saved. */
+  saveError?: string
   onRestart: () => void
   onQuit: () => void
 }) {
@@ -49,7 +56,18 @@ export default function QuizSummary({
         <p>
           {correct} of {total} correct
         </p>
+        {previous && (
+          <p className="muted">
+            Last time: {previous.percent}% ({previous.correct} of {previous.total}) · {formatDate(previous.finishedAt)}
+          </p>
+        )}
       </div>
+
+      {saveError && (
+        <p className="panel error" role="alert">
+          Couldn't save this result on this device: {saveError}
+        </p>
+      )}
 
       {missed.length === 0 ? (
         <p>No missed questions — all correct.</p>

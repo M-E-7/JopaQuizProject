@@ -5,6 +5,7 @@ import ImportQuiz from './components/ImportQuiz.tsx'
 import QuizList from './components/QuizList.tsx'
 import QuizScreen from './components/QuizScreen.tsx'
 import { platform, type QuizSetSummary } from './platform/index.ts'
+import { historySummary, type HistorySummary } from './score.ts'
 
 /**
  * Screens use browser history without changing the URL: starting a quiz pushes
@@ -15,8 +16,18 @@ function quizIdFromState(state: unknown): string | undefined {
   return typeof quizId === 'string' ? quizId : undefined
 }
 
+/** The stored sets plus each one's score history, counted against its current questions. */
+async function loadList(): Promise<{ quizzes: QuizSetSummary[]; runHistory: Record<string, HistorySummary> }> {
+  const quizzes = await platform.storage.listQuizSets()
+  const runs = await Promise.all(quizzes.map((q) => platform.storage.listRuns(q.id)))
+  const runHistory = Object.fromEntries(quizzes.map((q, i) => [q.id, historySummary(runs[i], new Set(q.questionIds))]))
+  return { quizzes, runHistory }
+}
+
 function App() {
   const [quizzes, setQuizzes] = useState<QuizSetSummary[]>()
+  /** Score history per quiz id (not `history`: that name is the browser's History API, used below). */
+  const [runHistory, setRunHistory] = useState<Record<string, HistorySummary>>({})
   const [loadError, setLoadError] = useState<string>()
   const [quizId, setQuizId] = useState(() => quizIdFromState(history.state))
   const [confirmingLeave, setConfirmingLeave] = useState(false)
@@ -27,9 +38,15 @@ function App() {
   const leaveGuard = useRef(false)
 
   const loadQuizzes = useCallback(() => {
-    platform.storage.listQuizSets().then(setQuizzes, (e: Error) => setLoadError(e.message))
+    loadList().then(({ quizzes, runHistory }) => {
+      setQuizzes(quizzes)
+      setRunHistory(runHistory)
+    }, (e: Error) => setLoadError(e.message))
   }, [])
-  useEffect(loadQuizzes, [loadQuizzes])
+  // Also on coming back from a quiz, so a run just finished shows in the list.
+  useEffect(() => {
+    if (!quizId) loadQuizzes()
+  }, [quizId, loadQuizzes])
 
   const setLeaveGuard = useCallback((needed: boolean) => {
     leaveGuard.current = needed
@@ -101,7 +118,7 @@ function App() {
               Couldn't read the quizzes stored on this device: {loadError}
             </p>
           ) : (
-            quizzes && <QuizList quizzes={quizzes} onStart={startQuiz} onDelete={setDeleting} />
+            quizzes && <QuizList quizzes={quizzes} history={runHistory} onStart={startQuiz} onDelete={setDeleting} />
           )}
           {deleteError && (
             <p className="panel error" role="alert">
