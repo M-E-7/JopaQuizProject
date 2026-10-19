@@ -20,6 +20,7 @@ export default function QuizScreen({
   onBack,
   onBackToList,
   onLeaveGuardChange,
+  onBackOverrideChange,
 }: {
   quizId: string
   /** Undefined on the mode choice. */
@@ -30,6 +31,8 @@ export default function QuizScreen({
   onBackToList: () => void
   /** Called with true while leaving would lose answers given so far. */
   onLeaveGuardChange: (needed: boolean) => void
+  /** Exam review page: a handler that Back calls instead of leaving the run. */
+  onBackOverrideChange: (handler: (() => void) | undefined) => void
 }) {
   const [load, setLoad] = useState<Load>({ status: 'loading' })
   /** Settings picked on the mode choice in this visit; until then the stored ones. */
@@ -88,7 +91,9 @@ export default function QuizScreen({
     onLeaveGuardChange,
   }
   if (mode === 'study') return <StudyRun key={attempt} {...runProps} />
-  if (mode === 'exam') return <ExamRun key={attempt} settings={examSettings} {...runProps} />
+  if (mode === 'exam') return (
+      <ExamRun key={attempt} settings={examSettings} onBackOverrideChange={onBackOverrideChange} {...runProps} />
+    )
   return (
     <ModeChoice
       quiz={load.quiz}

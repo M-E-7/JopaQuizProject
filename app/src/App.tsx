@@ -45,6 +45,8 @@ function App() {
   const [deleteError, setDeleteError] = useState<string>()
   /** True while leaving the quiz would lose answers; set by QuizScreen. */
   const leaveGuard = useRef(false)
+  /** Set by the exam's review page: Back closes it instead of leaving the run. */
+  const backOverride = useRef<() => void>(undefined)
 
   const loadQuizzes = useCallback(() => {
     loadList().then(({ quizzes, runHistory }) => {
@@ -60,11 +62,21 @@ function App() {
   const setLeaveGuard = useCallback((needed: boolean) => {
     leaveGuard.current = needed
   }, [])
+  const setBackOverride = useCallback((handler: (() => void) | undefined) => {
+    backOverride.current = handler
+  }, [])
 
   useEffect(() => {
     function onPopState(event: PopStateEvent) {
       const next = screenFromState(event.state)
-      if (leaveGuard.current && (next.quizId !== quizId || next.mode !== mode)) {
+      const leavingRun = next.quizId !== quizId || next.mode !== mode
+      if (backOverride.current && leavingRun) {
+        // Back on the review page: stay in the run and go back to its questions.
+        history.pushState({ quizId, mode }, '')
+        backOverride.current()
+        return
+      }
+      if (leaveGuard.current && leavingRun) {
         // Back pressed mid-run: put the run's entry back and ask first.
         history.pushState({ quizId, mode }, '')
         setConfirmingLeave(true)
@@ -85,7 +97,7 @@ function App() {
   /** One step back: run → mode choice → list. Asks first if a run would lose answers. */
   function requestBack() {
     if (leaveGuard.current) setConfirmingLeave(true)
-    else history.back()
+    else leave()
   }
 
   /** From a finished run (or an error), skipping the mode choice. */
@@ -93,8 +105,10 @@ function App() {
     history.go(mode ? -2 : -1)
   }
 
+  /** Quit (or Leave in the dialog) leaves the run, from its review page too. */
   function leave() {
     leaveGuard.current = false
+    backOverride.current = undefined
     setConfirmingLeave(false)
     history.back()
   }
@@ -122,6 +136,7 @@ function App() {
             onBack={requestBack}
             onBackToList={backToList}
             onLeaveGuardChange={setLeaveGuard}
+            onBackOverrideChange={setBackOverride}
           />
           <ConfirmDialog
             open={confirmingLeave}

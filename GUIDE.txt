@@ -4,7 +4,7 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-19 (Study and Exam modes - section 5).
+Last updated: 2026-10-19 (marking questions in an exam - section 5).
 
 Contents
   1. What is where
@@ -163,16 +163,23 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
 3. Importing a file with the same quiz id again (e.g. after Claude fixed a
    typo or added questions) asks "Replace it?" and shows the number of
    questions and the date on the device vs. in the file, so you don't
-   replace a newer version with an older one. Your score history is4. Playing: "Start" next to a quiz, then pick a mode:
+   replace a newer version with an older one. Your score history is kept.
+
+4. Playing: "Start" next to a quiz, then pick a mode:
    - Study: all questions. Tap an answer - it counts at once (no undo), the
      right one turns green and the explanation appears; "Next".
    - Exam: a random pick of questions with a time limit (default 20
      questions and 20 minutes; change both on that screen, the app
      remembers them per quiz on that device). Nothing is marked while you
      answer; you can change answers and move with Previous / Next or the
-     "Questions: N of M answered" grid. "Hand in" ends it (it asks first if
-     some are unanswered); at 0:00 it is handed in automatically.
-     Unanswered questions count as wrong.
+     "Questions: N of M answered" grid. "Mark" flags a question to come
+     back to later and moves on (tap "Marked" to unmark; you can mark a
+     question you've answered too). "Hand in" (or "Review" on the last
+     question) opens a review page with every question - answered, not
+     answered, marked - which you can sort by "Needs attention first";
+     tap a row to go back to it. "Hand in" there ends the exam (it asks
+     first if some are unanswered or still marked); at 0:00 it is handed
+     in automatically. Unanswered questions count as wrong.
    Either way the questions, and the answers within each question, come in
    a new random order every time. "Quit" or the back button goes back to
    the mode choice (it asks first if you've answered something, because a
