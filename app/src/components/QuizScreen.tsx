@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { platform, type QuestionResult } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
+import SourceReference from './SourceReference.tsx'
 
 type Load =
   | { status: 'loading' }
@@ -177,6 +178,7 @@ function Quiz({
             </p>
             <p className="explanation">{question.explanation}</p>
           </div>
+          <SourceReference reference={question.reference} sources={quiz.sources} />
           <div className="actions">
             <button type="button" className="button primary" ref={nextRef} onClick={next}>
               {index + 1 < total ? 'Next' : 'Finish'}

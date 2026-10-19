@@ -264,6 +264,40 @@ p {
   margin-top: 0.25rem;
 }
 
+.reference {
+  margin: 0.75rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.reference figcaption {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.reference-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.reference cite {
+  font-style: normal;
+  color: var(--text);
+}
+
+.reference-location,
+.reference-row {
+  display: block;
+}
+
+.reference blockquote {
+  margin: 0.5rem 0 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--border);
+  white-space: pre-line;
+}
+
 .dialog {
   max-width: min(400px, calc(100vw - 2rem));
   color: var(--text);

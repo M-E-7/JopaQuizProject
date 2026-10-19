@@ -2,6 +2,14 @@
 
 Newest first.
 
+## 2026-10-19
+
+- Show the source reference after answering
+  - New `SourceReference.tsx`, always shown under the explanation (user's choice): "SOURCE" + document title (or file name), location on its own line, then the quote as a blockquote
+  - Location: .docx heading path joined with " › " (paragraph number left out, user's choice: it counts list items and table rows, so it rarely matches Word); CSV `row N`; PDF `page N · heading path`
+  - CSV quotes split on " | ", one column per line with the column name in bold (user's choice); other quotes keep their line breaks (multi-paragraph quotes)
+  - Verified: build + lint pass; dev server with the two test sets: CSV question (wrong answer) at 375px light shows "Pojmovi cp1250.csv / row 2" and two bold-labelled lines, Next keeps focus; .docx question with a 3-line list quote on desktop dark shows "2. Zaštitna oprema › 2.2 Rukavice" and the quote's line breaks; no console errors
+
 ## 2026-10-18
 
 - Delete a quiz set (with its score history, after a confirmation)
