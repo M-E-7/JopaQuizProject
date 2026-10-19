@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { platform, type QuestionResult } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
+import { countResults } from '../score.ts'
 import SourceReference from './SourceReference.tsx'
 
 type Load =
@@ -105,6 +106,7 @@ function Quiz({
         <p className="muted">{quiz.title}</p>
         <div className="panel success" role="status">
           <p>You've reached the end of the quiz.</p>
+          <ScoreTally results={results} />
           <div className="actions">
             <button type="button" className="button primary" onClick={onQuit}>
               Back to list
@@ -129,11 +131,23 @@ function Quiz({
               Question {index + 1} of {total}
             </strong>
           </p>
+          <ScoreTally results={results} />
         </div>
         <button type="button" className="button" onClick={onQuit}>
           Quit
         </button>
       </header>
+      <div
+        className="progress"
+        role="progressbar"
+        aria-label="Answered"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={results.length}
+        aria-valuetext={`${results.length} of ${total} answered`}
+      >
+        <div className="progress-fill" style={{ width: `${(results.length / total) * 100}%` }} />
+      </div>
 
       <p className="question-text" ref={questionRef} tabIndex={-1}>
         {question.question}
@@ -187,5 +201,22 @@ function Quiz({
         </div>
       )}
     </section>
+  )
+}
+
+/** Running count of right and wrong answers; the icons are extra, the words carry the meaning. */
+function ScoreTally({ results }: { results: QuestionResult[] }) {
+  const { correct, wrong } = countResults(results)
+  return (
+    <p className="tally">
+      <span className="tally-correct" aria-hidden="true">
+        ✓
+      </span>{' '}
+      {correct} correct ·{' '}
+      <span className="tally-wrong" aria-hidden="true">
+        ✗
+      </span>{' '}
+      {wrong} wrong
+    </p>
   )
 }

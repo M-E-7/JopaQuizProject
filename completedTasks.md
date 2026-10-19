@@ -4,6 +4,11 @@ Newest first.
 
 ## 2026-10-19
 
+- Score tracking during a quiz (count of correct and wrong answers)
+  - `QuizScreen.tsx`: line "✓ N correct · ✗ N wrong" under "Question N of M" (green/red icons, the words carry the meaning) and a thin progress bar under the header (answered / total, fills on the tap; `role="progressbar"`, "N of M answered"), user's choice
+  - End screen already shows the final count (user's choice); the full summary is the next task
+  - New `app/src/score.ts`: `countResults()` — pure helper, the start of the derived score figures for score history
+  - Verified: build + lint pass; dev server with a 3-question test set: right then wrong answer → "1 correct · 1 wrong", bar 2/3 (aria-valuenow 2); end screen "2 correct · 1 wrong"; desktop dark and 375px light; no console errors
 - Show the source reference after answering
   - New `SourceReference.tsx`, always shown under the explanation (user's choice): "SOURCE" + document title (or file name), location on its own line, then the quote as a blockquote
   - Location: .docx heading path joined with " › " (paragraph number left out, user's choice: it counts list items and table rows, so it rarely matches Word); CSV `row N`; PDF `page N · heading path`

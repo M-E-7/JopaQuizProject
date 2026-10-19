@@ -164,6 +164,46 @@ p {
   font-size: 0.875rem;
 }
 
+.tally {
+  font-size: 0.875rem;
+}
+
+.panel .tally {
+  margin-top: 0.25rem;
+}
+
+.tally-correct,
+.tally-wrong {
+  font-weight: 700;
+}
+
+.tally-correct {
+  color: var(--correct);
+}
+
+.tally-wrong {
+  color: var(--wrong);
+}
+
+.progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill {
+    transition: none;
+  }
+}
+
 .question-text {
   font-size: 1.0625rem;
   line-height: 1.6;

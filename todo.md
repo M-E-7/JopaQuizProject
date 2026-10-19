@@ -8,7 +8,7 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 - Phase 1 is done: deployed on GitHub Pages, installed and working offline on Windows and Android, file import works on both (2026-10-18).
 - Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill (with an independent blind-answer check and an append mode for existing sets) are done. First real .docx quiz made (EPSO), regenerated as practice items after the user's review (the skill now picks fact questions or practice items by document kind); waiting on the user's review and a real .csv. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
 - Test files from the dry run (fictional): `documents/Prirucnik zastite.docx`, `documents/Pojmovi cp1250.csv`, `documents/Pitanja.csv` (+ `documents/extracted/`) and `quizzes/test-*.json`. Handy as sample imports; delete them whenever.
-- Phase 3: platform layer (`app/src/platform/`, IndexedDB via `idb`), "Import quiz from file" (with the quiz list and replace) and the question screen with answer feedback and the source reference (document, location, quote) are done — quizzes can be played (file order, nothing saved yet) and deleted (with their history, after a confirmation). Next: score tracking during a quiz. Study/Exam modes are planned after score history (resuming an interrupted run is a Phase 4 follow-up).
+- Phase 3: platform layer (`app/src/platform/`, IndexedDB via `idb`), "Import quiz from file" (with the quiz list and replace) and the question screen with answer feedback and the source reference (document, location, quote) are done — quizzes can be played (file order, running score + progress bar, nothing saved yet) and deleted (with their history, after a confirmation). Next: end-of-quiz summary (the end screen already shows the final count). Study/Exam modes are planned after score history (resuming an interrupted run is a Phase 4 follow-up).
 - **Waiting on the user:** trying Delete on the devices once it's deployed (first Phase 3 task). It doesn't block other work, so skip it and ask how it went now and then.
 
 ## Phase 1 — Project setup
@@ -26,7 +26,6 @@ All done.
 ## Phase 3 — Core app
 
 - [ ] Try Delete on the deployed app on Windows and Android (user; checked in the browser pane only so far)
-- [ ] Score tracking: count of correct and wrong answers during a quiz
 - [ ] End-of-quiz summary (score, percentage, list of missed questions)
 - [ ] Shuffle question order and option order
 - [ ] Save score history per quiz set locally: `platform.storage.addRun()` with per-question results; right/wrong/missed derived by small pure functions
