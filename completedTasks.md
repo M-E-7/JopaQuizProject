@@ -4,6 +4,12 @@ Newest first.
 
 ## 2026-10-19
 
+- End-of-quiz summary (score, percentage, list of missed questions)
+  - New `QuizSummary.tsx` (made so Exam mode can reuse it: takes the run's questions + answers, an unanswered question counts as missed and shows "Not answered"): "Quiz finished" heading (gets focus), large percentage + "N of M correct", then "Missed questions (K)" or "No missed questions — all correct."
+  - Missed questions collapsed, tap to open (user's choice): `<details>` row with "Question N" (position in the run) + 2-line preview. Opened, it shows the full question, ✗ your answer and ✓ correct answer (both shown, user's choice; option text, no letters), the explanation, `SourceReference`
+  - Buttons Start again + Back to list (user's choice); Start again remounts the quiz (`attempt` key in `QuizScreen`)
+  - `score.ts`: `Answer` (= `QuestionResult` + `chosen`, in memory only) and `scorePercent()`
+  - Verified: build + lint pass; dev server with a 4-question test set (one long 3-paragraph question): 2 right / 2 wrong → "50% · 2 of 4 correct", Questions 2 and 3 listed, the long preview clamped to 2 lines; keyboard Tab + Enter opens Question 3 (passage line breaks, your/correct answer, explanation, CSV source); all correct → 100% + "No missed questions"; Start again → question 1, 0/0, progress 0; one answer then Quit → "Leave this quiz?"; Back to list from the summary → no prompt; 375px light (no sideways scroll) and desktop dark; no console errors
 - Score tracking during a quiz (count of correct and wrong answers)
   - `QuizScreen.tsx`: line "✓ N correct · ✗ N wrong" under "Question N of M" (green/red icons, the words carry the meaning) and a thin progress bar under the header (answered / total, fills on the tap; `role="progressbar"`, "N of M answered"), user's choice
   - End screen already shows the final count (user's choice); the full summary is the next task

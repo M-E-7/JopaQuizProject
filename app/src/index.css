@@ -338,6 +338,114 @@ p {
   white-space: pre-line;
 }
 
+.quiz-title {
+  font-size: 0.875rem;
+}
+
+.summary-heading {
+  margin: 0;
+}
+
+.summary-heading:focus {
+  outline: none;
+}
+
+.summary-percent {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.summary-subheading {
+  font-size: 1.125rem;
+  margin: 0 0 0.5rem;
+}
+
+.missed-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.missed {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.missed > summary {
+  display: grid;
+  gap: 0.125rem;
+  min-height: 44px;
+  padding: 0.625rem 0.75rem 0.625rem 2rem;
+  position: relative;
+  list-style: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.missed > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Own disclosure triangle, so it lines up with the first line on every browser. */
+.missed > summary::before {
+  content: '▸';
+  position: absolute;
+  left: 0.75rem;
+  top: 0.625rem;
+  color: var(--text-muted);
+}
+
+.missed[open] > summary::before {
+  content: '▾';
+}
+
+.missed > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.missed-preview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.missed[open] .missed-preview {
+  display: none;
+}
+
+.missed-body {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+.answer-line {
+  overflow-wrap: anywhere;
+}
+
+.answer-wrong,
+.answer-correct {
+  font-weight: 700;
+}
+
+.answer-wrong {
+  color: var(--wrong);
+}
+
+.answer-correct {
+  color: var(--correct);
+}
+
 .dialog {
   max-width: min(400px, calc(100vw - 2rem));
   color: var(--text);

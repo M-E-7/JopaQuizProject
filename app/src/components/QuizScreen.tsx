@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { platform, type QuestionResult } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
-import { countResults } from '../score.ts'
+import { countResults, type Answer } from '../score.ts'
+import QuizSummary from './QuizSummary.tsx'
 import SourceReference from './SourceReference.tsx'
 
 type Load =
@@ -23,6 +24,8 @@ export default function QuizScreen({
   onLeaveGuardChange: (needed: boolean) => void
 }) {
   const [load, setLoad] = useState<Load>({ status: 'loading' })
+  /** Bumped by "Start again": a new key remounts the quiz with fresh state. */
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     platform.storage.getQuizSet(quizId).then(
@@ -48,22 +51,32 @@ export default function QuizScreen({
       </div>
     )
   }
-  return <Quiz quiz={load.quiz} onQuit={onQuit} onLeaveGuardChange={onLeaveGuardChange} />
+  return (
+    <Quiz
+      key={attempt}
+      quiz={load.quiz}
+      onQuit={onQuit}
+      onRestart={() => setAttempt((a) => a + 1)}
+      onLeaveGuardChange={onLeaveGuardChange}
+    />
+  )
 }
 
 function Quiz({
   quiz,
   onQuit,
+  onRestart,
   onLeaveGuardChange,
 }: {
   quiz: QuizSet
   onQuit: () => void
+  onRestart: () => void
   onLeaveGuardChange: (needed: boolean) => void
 }) {
   const [index, setIndex] = useState(0)
   /** Option picked for the current question; set means answered. */
   const [chosen, setChosen] = useState<number>()
-  const [results, setResults] = useState<QuestionResult[]>([])
+  const [answers, setAnswers] = useState<Answer[]>([])
   const questionRef = useRef<HTMLParagraphElement>(null)
   const feedbackRef = useRef<HTMLDivElement>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
@@ -72,8 +85,8 @@ function Quiz({
   const finished = index >= total
 
   useEffect(() => {
-    onLeaveGuardChange(results.length > 0 && !finished)
-  }, [results.length, finished, onLeaveGuardChange])
+    onLeaveGuardChange(answers.length > 0 && !finished)
+  }, [answers.length, finished, onLeaveGuardChange])
   useEffect(() => () => onLeaveGuardChange(false), [onLeaveGuardChange])
 
   // New question: start at the top, with keyboard focus on the question.
@@ -92,7 +105,7 @@ function Quiz({
   function answer(question: QuizQuestion, option: number) {
     if (chosen !== undefined) return
     setChosen(option)
-    setResults((r) => [...r, { questionId: question.id, correct: option === question.correctIndex }])
+    setAnswers((r) => [...r, { questionId: question.id, correct: option === question.correctIndex, chosen: option }])
   }
 
   function next() {
@@ -102,18 +115,13 @@ function Quiz({
 
   if (finished) {
     return (
-      <section className="quiz">
-        <p className="muted">{quiz.title}</p>
-        <div className="panel success" role="status">
-          <p>You've reached the end of the quiz.</p>
-          <ScoreTally results={results} />
-          <div className="actions">
-            <button type="button" className="button primary" onClick={onQuit}>
-              Back to list
-            </button>
-          </div>
-        </div>
-      </section>
+      <QuizSummary
+        quiz={quiz}
+        questions={quiz.questions}
+        answers={answers}
+        onRestart={onRestart}
+        onQuit={onQuit}
+      />
     )
   }
 
@@ -131,7 +139,7 @@ function Quiz({
               Question {index + 1} of {total}
             </strong>
           </p>
-          <ScoreTally results={results} />
+          <ScoreTally results={answers} />
         </div>
         <button type="button" className="button" onClick={onQuit}>
           Quit
@@ -143,10 +151,10 @@ function Quiz({
         aria-label="Answered"
         aria-valuemin={0}
         aria-valuemax={total}
-        aria-valuenow={results.length}
-        aria-valuetext={`${results.length} of ${total} answered`}
+        aria-valuenow={answers.length}
+        aria-valuetext={`${answers.length} of ${total} answered`}
       >
-        <div className="progress-fill" style={{ width: `${(results.length / total) * 100}%` }} />
+        <div className="progress-fill" style={{ width: `${(answers.length / total) * 100}%` }} />
       </div>
 
       <p className="question-text" ref={questionRef} tabIndex={-1}>
