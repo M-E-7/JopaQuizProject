@@ -32,6 +32,21 @@ export interface QuestionResult {
   correct: boolean
 }
 
+export type QuizMode = 'study' | 'exam'
+
+/** Exam settings of a quiz set, kept on the device (and on replace) until the set is deleted. */
+export interface ExamSettings {
+  questionCount: number
+  timeLimitMinutes: number
+}
+
+/** What an exam run used and how it ended. */
+export interface ExamRunInfo extends ExamSettings {
+  timeUsedSeconds: number
+  /** Handed in automatically because the time ran out. */
+  timedOut: boolean
+}
+
 /**
  * One finished quiz run. Right/wrong/missed are derived from `results`, so
  * results for removed questions can be left out when the set is re-imported.
@@ -39,9 +54,19 @@ export interface QuestionResult {
 export interface QuizRun {
   id: number
   quizId: string
+  /** Missing on runs saved before Exam mode existed: those are Study runs. */
+  mode?: QuizMode
   /** ISO date-time. */
   finishedAt: string
+  /**
+   * The questions asked, in order. Missing on runs saved before Exam mode: a
+   * Study run answers every question, so its results are its questions.
+   */
+  questionIds?: string[]
+  /** Answered questions only. */
   results: QuestionResult[]
+  /** Exam runs only. */
+  exam?: ExamRunInfo
 }
 
 export interface QuizStorage {
@@ -50,12 +75,15 @@ export interface QuizStorage {
   getQuizSet(id: string): Promise<StoredQuizSet | undefined>
   /** Adds the set, or replaces the stored set with the same `quiz.id`. Its history is kept. */
   saveQuizSet(set: StoredQuizSet): Promise<void>
-  /** Deletes the set and its run history. */
+  /** Deletes the set, its run history and its exam settings. */
   deleteQuizSet(id: string): Promise<void>
   /** Stores a finished run and returns its id. */
   addRun(run: Omit<QuizRun, 'id'>): Promise<number>
   /** Runs of one set, oldest first. */
   listRuns(quizId: string): Promise<QuizRun[]>
+  /** The set's saved exam settings, or undefined if none were saved yet. */
+  getExamSettings(quizId: string): Promise<ExamSettings | undefined>
+  saveExamSettings(quizId: string, settings: ExamSettings): Promise<void>
   /** Asks the browser not to evict stored data. Returns whether storage is persistent. */
   requestPersistence(): Promise<boolean>
 }

@@ -1,13 +1,15 @@
 // QuizStorage on IndexedDB (via the `idb` wrapper).
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { QuizRun, QuizSetSummary, QuizStorage, StoredQuizSet } from '../types.ts'
+import type { ExamSettings, QuizRun, QuizSetSummary, QuizStorage, StoredQuizSet } from '../types.ts'
 
 const DB_NAME = 'jopa-quiz'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 interface QuizDB extends DBSchema {
   quizSets: { key: string; value: StoredQuizSet }
   runs: { key: number; value: QuizRun; indexes: { byQuiz: string } }
+  /** Since v2. */
+  examSettings: { key: string; value: ExamSettings & { quizId: string } }
 }
 
 export function createIdbStorage(): QuizStorage {
@@ -24,6 +26,11 @@ export function createIdbStorage(): QuizStorage {
           db.createObjectStore('quizSets', { keyPath: 'quiz.id' })
           const runs = db.createObjectStore('runs', { keyPath: 'id', autoIncrement: true })
           runs.createIndex('byQuiz', 'quizId')
+        }
+        // v2 (Exam mode): new store only. Runs saved before have no `mode` /
+        // `questionIds` and are read as Study runs, so they need no conversion.
+        if (oldVersion < 2) {
+          db.createObjectStore('examSettings', { keyPath: 'quizId' })
         }
       },
       // A newer app version in another window wants to upgrade: let it.
@@ -65,10 +72,11 @@ export function createIdbStorage(): QuizStorage {
     },
 
     async deleteQuizSet(id) {
-      const tx = (await db()).transaction(['quizSets', 'runs'], 'readwrite')
+      const tx = (await db()).transaction(['quizSets', 'runs', 'examSettings'], 'readwrite')
       const runKeys = await tx.objectStore('runs').index('byQuiz').getAllKeys(id)
       await Promise.all([
         tx.objectStore('quizSets').delete(id),
+        tx.objectStore('examSettings').delete(id),
         ...runKeys.map((key) => tx.objectStore('runs').delete(key)),
         tx.done,
       ])
@@ -82,6 +90,15 @@ export function createIdbStorage(): QuizStorage {
     async listRuns(quizId) {
       // Ids increase with each run, so key order is oldest first.
       return (await db()).getAllFromIndex('runs', 'byQuiz', quizId)
+    },
+
+    async getExamSettings(quizId) {
+      const stored = await (await db()).get('examSettings', quizId)
+      return stored && { questionCount: stored.questionCount, timeLimitMinutes: stored.timeLimitMinutes }
+    },
+
+    async saveExamSettings(quizId, settings) {
+      await (await db()).put('examSettings', { quizId, ...settings })
     },
 
     requestPersistence,

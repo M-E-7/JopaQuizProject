@@ -4,16 +4,24 @@ import { plural } from './format.ts'
 import ImportQuiz from './components/ImportQuiz.tsx'
 import QuizList from './components/QuizList.tsx'
 import QuizScreen from './components/QuizScreen.tsx'
-import { platform, type QuizSetSummary } from './platform/index.ts'
+import { platform, type QuizMode, type QuizSetSummary } from './platform/index.ts'
 import { historySummary, type HistorySummary } from './score.ts'
 
+/** No quiz = the list; a quiz without a mode = its mode choice; both = a run. */
+interface Screen {
+  quizId?: string
+  mode?: QuizMode
+}
+
 /**
- * Screens use browser history without changing the URL: starting a quiz pushes
- * an entry `{ quizId }`, so Back (Android's back button too) returns to the list.
+ * Screens use browser history without changing the URL: Start pushes `{ quizId }`
+ * (mode choice) and picking a mode pushes `{ quizId, mode }`, so Back (Android's
+ * back button too) goes run → mode choice → list.
  */
-function quizIdFromState(state: unknown): string | undefined {
-  const quizId = (state as { quizId?: unknown } | null)?.quizId
-  return typeof quizId === 'string' ? quizId : undefined
+function screenFromState(state: unknown): Screen {
+  const { quizId, mode } = (state ?? {}) as { quizId?: unknown; mode?: unknown }
+  if (typeof quizId !== 'string') return {}
+  return { quizId, mode: mode === 'study' || mode === 'exam' ? mode : undefined }
 }
 
 /** The stored sets plus each one's score history, counted against its current questions. */
@@ -29,7 +37,8 @@ function App() {
   /** Score history per quiz id (not `history`: that name is the browser's History API, used below). */
   const [runHistory, setRunHistory] = useState<Record<string, HistorySummary>>({})
   const [loadError, setLoadError] = useState<string>()
-  const [quizId, setQuizId] = useState(() => quizIdFromState(history.state))
+  const [screen, setScreen] = useState(() => screenFromState(history.state))
+  const { quizId, mode } = screen
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   /** The set whose Delete was tapped, while the confirmation is open. */
   const [deleting, setDeleting] = useState<QuizSetSummary>()
@@ -54,28 +63,34 @@ function App() {
 
   useEffect(() => {
     function onPopState(event: PopStateEvent) {
-      const next = quizIdFromState(event.state)
-      if (leaveGuard.current && next !== quizId) {
-        // Back pressed mid-quiz: put the quiz entry back and ask first.
-        history.pushState({ quizId }, '')
+      const next = screenFromState(event.state)
+      if (leaveGuard.current && (next.quizId !== quizId || next.mode !== mode)) {
+        // Back pressed mid-run: put the run's entry back and ask first.
+        history.pushState({ quizId, mode }, '')
         setConfirmingLeave(true)
         return
       }
       setConfirmingLeave(false)
-      setQuizId(next)
+      setScreen(next)
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
-  }, [quizId])
+  }, [quizId, mode])
 
-  function startQuiz(id: string) {
-    history.pushState({ quizId: id }, '')
-    setQuizId(id)
+  function show(next: Screen) {
+    history.pushState(next, '')
+    setScreen(next)
   }
 
-  function requestLeave() {
+  /** One step back: run → mode choice → list. Asks first if a run would lose answers. */
+  function requestBack() {
     if (leaveGuard.current) setConfirmingLeave(true)
     else history.back()
+  }
+
+  /** From a finished run (or an error), skipping the mode choice. */
+  function backToList() {
+    history.go(mode ? -2 : -1)
   }
 
   function leave() {
@@ -99,7 +114,15 @@ function App() {
     <main className="app">
       {quizId ? (
         <>
-          <QuizScreen key={quizId} quizId={quizId} onQuit={requestLeave} onLeaveGuardChange={setLeaveGuard} />
+          <QuizScreen
+            key={quizId}
+            quizId={quizId}
+            mode={mode}
+            onChooseMode={(m) => show({ quizId, mode: m })}
+            onBack={requestBack}
+            onBackToList={backToList}
+            onLeaveGuardChange={setLeaveGuard}
+          />
           <ConfirmDialog
             open={confirmingLeave}
             confirmLabel="Leave"
@@ -107,7 +130,7 @@ function App() {
             onConfirm={leave}
             onCancel={() => setConfirmingLeave(false)}
           >
-            <p>Leave this quiz? Your answers so far won't be kept.</p>
+            <p>Leave this {mode === 'exam' ? 'exam' : 'quiz'}? Your answers so far won't be kept.</p>
           </ConfirmDialog>
         </>
       ) : (
@@ -118,7 +141,7 @@ function App() {
               Couldn't read the quizzes stored on this device: {loadError}
             </p>
           ) : (
-            quizzes && <QuizList quizzes={quizzes} history={runHistory} onStart={startQuiz} onDelete={setDeleting} />
+            quizzes && <QuizList quizzes={quizzes} history={runHistory} onStart={(id) => show({ quizId: id })} onDelete={setDeleting} />
           )}
           {deleteError && (
             <p className="panel error" role="alert">

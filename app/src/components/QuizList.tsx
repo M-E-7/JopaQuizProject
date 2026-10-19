@@ -40,13 +40,14 @@ export default function QuizList({
   )
 }
 
-/** "Last: 85% (17 of 20) · 18 Oct 2026 · 3 runs"; nothing for a set never finished. */
+/** "Last: Exam 85% (17 of 20) · 18 Oct 2026 · 3 runs" (latest run of either mode); nothing for a set never finished. */
 function LastScore({ history }: { history: HistorySummary | undefined }) {
   const last = history?.last
   if (!last) return null
   return (
     <span className="muted">
-      Last: {last.percent}% ({last.correct} of {last.total}) · {formatDate(last.finishedAt)} ·{' '}
+      Last: {last.mode === 'exam' ? 'Exam' : 'Study'} {last.percent}% ({last.correct} of {last.total}) ·{' '}
+      {formatDate(last.finishedAt)} ·{' '}
       {plural(history.count, 'run')}
     </span>
   )

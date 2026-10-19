@@ -1,5 +1,5 @@
 // Score figures derived from a run's results (pure, no storage).
-import type { QuestionResult, QuizRun } from './platform/index.ts'
+import type { QuestionResult, QuizMode, QuizRun } from './platform/index.ts'
 
 /** An answer given during a run. `chosen` (option index) is only kept in memory, for the summary. */
 export interface Answer extends QuestionResult {
@@ -25,21 +25,36 @@ export function currentResults(results: QuestionResult[], questionIds: ReadonlyS
   return results.filter((r) => questionIds.has(r.questionId))
 }
 
+/** A run's mode; runs saved before Exam mode existed have none and were Study runs. */
+export function runMode(run: QuizRun): QuizMode {
+  return run.mode ?? 'study'
+}
+
 /** A saved run's score, counted against the set's current questions. */
 export interface RunScore {
+  mode: QuizMode
   finishedAt: string
   correct: number
   total: number
   percent: number
 }
 
-/** Score of a saved run, or undefined if none of its questions are left in the set. */
+/**
+ * Score of a saved run, or undefined if none of its questions are left in the
+ * set. Questions asked but not answered (an exam handed in early) count as missed.
+ */
 export function runScore(run: QuizRun, questionIds: ReadonlySet<string>): RunScore | undefined {
-  // A Study run answers every question it asks, so its results are its questions.
-  const results = currentResults(run.results, questionIds)
-  if (results.length === 0) return undefined
-  const { correct } = countResults(results)
-  return { finishedAt: run.finishedAt, correct, total: results.length, percent: scorePercent(correct, results.length) }
+  // Older runs have no `questionIds`: they were Study runs, which answer every question asked.
+  const asked = (run.questionIds ?? run.results.map((r) => r.questionId)).filter((id) => questionIds.has(id))
+  if (asked.length === 0) return undefined
+  const { correct } = countResults(currentResults(run.results, questionIds))
+  return {
+    mode: runMode(run),
+    finishedAt: run.finishedAt,
+    correct,
+    total: asked.length,
+    percent: scorePercent(correct, asked.length),
+  }
 }
 
 export interface HistorySummary {
@@ -48,8 +63,14 @@ export interface HistorySummary {
   last?: RunScore
 }
 
-/** Run count and latest score of a set's history (`runs` oldest first, as `listRuns` returns them). */
-export function historySummary(runs: QuizRun[], questionIds: ReadonlySet<string>): HistorySummary {
-  const scores = runs.map((run) => runScore(run, questionIds)).filter((s) => s !== undefined)
+/**
+ * Run count and latest score of a set's history (`runs` oldest first, as
+ * `listRuns` returns them), of one mode or of all runs.
+ */
+export function historySummary(runs: QuizRun[], questionIds: ReadonlySet<string>, mode?: QuizMode): HistorySummary {
+  const scores = runs
+    .filter((run) => mode === undefined || runMode(run) === mode)
+    .map((run) => runScore(run, questionIds))
+    .filter((s) => s !== undefined)
   return { count: scores.length, last: scores.at(-1) }
 }

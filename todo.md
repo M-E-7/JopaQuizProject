@@ -8,8 +8,8 @@ When a task is finished, move it to `completedTasks.md` (with the date) and remo
 - Phase 1 is done: deployed on GitHub Pages, installed and working offline on Windows and Android, file import works on both (2026-10-18).
 - Phase 2: validator, ingestion, `check-references` and the `generate-quiz` skill (with an independent blind-answer check and an append mode for existing sets) are done. First real .docx quiz made (EPSO), regenerated as practice items after the user's review (the skill now picks fact questions or practice items by document kind); waiting on the user's review and a real .csv. Next: the user puts a real .docx and .csv into `documents/` and we test the skill on them together.
 - Test files from the dry run (fictional): `documents/Prirucnik zastite.docx`, `documents/Pojmovi cp1250.csv`, `documents/Pitanja.csv` (+ `documents/extracted/`) and `quizzes/test-*.json`. Handy as sample imports; delete them whenever.
-- Phase 3: platform layer (`app/src/platform/`, IndexedDB via `idb`), "Import quiz from file" (with the quiz list and replace) and the question screen with answer feedback and the source reference (document, location, quote) are done — quizzes can be played (questions and options shuffled each run, running score + progress bar, end-of-quiz summary with missed questions and Start again) and deleted (with their history, after a confirmation). Finished runs are saved per set (list shows the last score + run count, the summary shows "Last time"; removed questions don't count). Next: Study/Exam modes (resuming an interrupted run is a Phase 4 follow-up).
-- **Waiting on the user:** trying Delete on the devices once it's deployed (first Phase 3 task). It doesn't block other work, so skip it and ask how it went now and then.
+- Phase 3: platform layer (`app/src/platform/`, IndexedDB via `idb`), "Import quiz from file" (with the quiz list and replace) and the question screen with answer feedback and the source reference (document, location, quote) are done — quizzes can be played (questions and options shuffled each run, running score + progress bar, end-of-quiz summary with missed questions and Start again) and deleted (with their history, after a confirmation). Finished runs are saved per set (list shows the last score + run count, the summary shows "Last time"; removed questions don't count). Study and Exam modes are done (mode choice after Start; exam = random N questions, countdown, free navigation, hand in; DB v2 stores exam settings per set). Next: "Retry missed questions" (resuming an interrupted run is a Phase 4 follow-up).
+- **Waiting on the user:** trying Delete on the devices once it's deployed (first Phase 3 task), and now also Study/Exam on a phone (timer, overview grid, number fields). Neither blocks other work, so skip them and ask how it went now and then.
 
 ## Phase 1 — Project setup
 
@@ -26,17 +26,6 @@ All done.
 ## Phase 3 — Core app
 
 - [ ] Try Delete on the deployed app on Windows and Android (user; checked in the browser pane only so far)
-- [ ] Study and Exam modes: after tapping a quiz, the user picks **Study** or **Exam**
-  - Study = today's quiz screen (all questions, one tap answers, ✓/✗ + explanation at once)
-  - Exam = a random selection of N questions with a time limit; settings per quiz set, adjustable on the mode-choice screen
-    - Defaults: 20 questions (all, if the set has fewer) and 20 minutes; time is set on its own, not derived from the question count
-    - No feedback while answering; free navigation (Previous / Next, overview of answered / unanswered, "Hand in" — confirms if some are unanswered)
-    - Visible countdown; at 0 the exam is handed in automatically, unanswered questions count as missed
-    - End-of-exam summary (reuses the end-of-quiz summary): score, time used, missed questions with explanations
-  - Score history saves both modes: each run records its mode; exam runs also keep time used and the settings used
-    - Today a run stores only answered questions (a Study run answers all of them), and `runScore()` uses the results as the run's questions. Exam runs can leave questions unanswered, so they must also store which questions were asked (e.g. `questionIds`, or results with an answered flag), and `runScore()` must count unanswered ones as missed. Runs saved before this have no `mode`: read them as Study
-  - Exam settings are stored on the device per quiz set (IndexedDB → bump `DB_VERSION` + upgrade step); kept when the set is replaced by re-import, deleted with the set
-  - Closing / reloading mid-run loses the run (as today); resuming is a separate task (Phase 4)
 - [ ] "Retry missed questions" mode (uses the saved history)
 
 ## Phase 4 — Nice to have

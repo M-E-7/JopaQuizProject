@@ -1,32 +1,38 @@
 import { useEffect, useRef } from 'react'
+import type { ExamRunInfo, QuizMode } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
-import { formatDate } from '../format.ts'
+import { formatDate, formatDuration } from '../format.ts'
 import { countResults, scorePercent, type Answer, type RunScore } from '../score.ts'
 import SourceReference from './SourceReference.tsx'
 
 /**
- * End of a run: score, percentage and the missed questions (wrong or not
- * answered), each collapsed until tapped.
+ * End of a run (Study or Exam): score, percentage, time used for an exam, and
+ * the missed questions (wrong or not answered), each collapsed until tapped.
  */
 export default function QuizSummary({
   quiz,
+  mode,
+  exam,
   questions,
   answers,
   previous,
   saveError,
   onRestart,
-  onQuit,
+  onBackToList,
 }: {
   quiz: QuizSet
+  mode: QuizMode
+  /** Exam runs: settings, time used and whether time ran out. */
+  exam?: ExamRunInfo
   /** The run's questions, in the order they were asked. */
   questions: QuizQuestion[]
   answers: Answer[]
-  /** The set's previous saved run, shown as "Last time". */
+  /** The set's previous saved run of the same mode, shown as "Last time". */
   previous?: RunScore
   /** Set if this run couldn't be saved. */
   saveError?: string
   onRestart: () => void
-  onQuit: () => void
+  onBackToList: () => void
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null)
 
@@ -47,7 +53,7 @@ export default function QuizSummary({
       <div>
         <p className="muted quiz-title">{quiz.title}</p>
         <h1 ref={headingRef} tabIndex={-1} className="summary-heading">
-          Quiz finished
+          {mode === 'exam' ? 'Exam finished' : 'Quiz finished'}
         </h1>
       </div>
 
@@ -56,6 +62,12 @@ export default function QuizSummary({
         <p>
           {correct} of {total} correct
         </p>
+        {exam && (
+          <p>
+            Time used: {formatDuration(exam.timeUsedSeconds)} of {formatDuration(exam.timeLimitMinutes * 60)}
+          </p>
+        )}
+        {exam?.timedOut && <p>Time ran out — the exam was handed in automatically.</p>}
         {previous && (
           <p className="muted">
             Last time: {previous.percent}% ({previous.correct} of {previous.total}) · {formatDate(previous.finishedAt)}
@@ -90,7 +102,7 @@ export default function QuizSummary({
         <button type="button" className="button primary" onClick={onRestart}>
           Start again
         </button>
-        <button type="button" className="button" onClick={onQuit}>
+        <button type="button" className="button" onClick={onBackToList}>
           Back to list
         </button>
       </div>
