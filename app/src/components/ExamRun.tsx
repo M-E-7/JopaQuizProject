@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { needsAttention } from '../exam.ts'
 import { formatDuration, OPTION_LETTERS, plural } from '../format.ts'
 import type { ExamRunInfo, ExamSettings, QuizRun } from '../platform/index.ts'
 import type { QuizSet } from '../quiz/types.ts'
@@ -56,6 +57,11 @@ export default function ExamRun({
   /** The review page before handing in, in place of the question. */
   const [reviewing, setReviewing] = useState(false)
   const [reviewOrder, setReviewOrder] = useState<ReviewOrder>('exam')
+  /**
+   * A question was opened from the review page: Next steps to the next marked or
+   * unanswered question, then back to the review. Ends on the review page or a grid jump.
+   */
+  const [checking, setChecking] = useState(false)
   const [confirmingHandIn, setConfirmingHandIn] = useState(false)
   const [result, setResult] = useState<{ answers: Answer[]; exam: ExamRunInfo }>()
   const [lastTime] = useState(previous)
@@ -69,6 +75,8 @@ export default function ExamRun({
   const total = questions.length
   const limitSeconds = settings.timeLimitMinutes * 60
   const deadline = startedAt + limitSeconds * 1000
+  /** While checking: the next marked or unanswered question after this one, -1 if none. */
+  const nextToCheck = questions.findIndex((q, i) => i > index && needsAttention(q.id, chosen, marked))
 
   useEffect(() => {
     onLeaveGuardChange((chosen.size > 0 || marked.size > 0) && !result)
@@ -107,7 +115,7 @@ export default function ExamRun({
     setChosen((c) => new Map(c).set(questionId, option))
   }
 
-  /** Marking skips ahead to the next question; unmarking stays. */
+  /** Marking skips ahead to the next question (the next one to check while checking); unmarking stays. */
   function toggleMark(questionId: string) {
     const marking = !marked.has(questionId)
     setMarked((m) => {
@@ -116,12 +124,27 @@ export default function ExamRun({
       else next.delete(questionId)
       return next
     })
-    if (marking && index < total - 1) setIndex(index + 1)
+    if (!marking) return
+    if (checking) {
+      if (nextToCheck >= 0) setIndex(nextToCheck)
+    } else if (index < total - 1) setIndex(index + 1)
   }
 
+  /** From the review page: starts checking. */
   function openQuestion(i: number) {
     setIndex(i)
     setReviewing(false)
+    setChecking(true)
+  }
+
+  function openReview() {
+    setReviewing(true)
+    setChecking(false)
+  }
+
+  function jumpTo(i: number) {
+    setIndex(i)
+    setChecking(false)
   }
 
   /** From the review page; asks first while questions are unanswered or still marked. */
@@ -277,8 +300,16 @@ export default function ExamRun({
             >
               <span aria-hidden="true">⚑</span> {isMarked ? 'Marked' : 'Mark'}
             </button>
-            {isLast ? (
-              <button type="button" className="button primary" onClick={() => setReviewing(true)}>
+            {checking && nextToCheck >= 0 ? (
+              <button type="button" className="button primary" onClick={() => setIndex(nextToCheck)}>
+                Next to check
+              </button>
+            ) : checking ? (
+              <button type="button" className="button primary" onClick={openReview}>
+                Back to review
+              </button>
+            ) : isLast ? (
+              <button type="button" className="button primary" onClick={openReview}>
                 Review
               </button>
             ) : (
@@ -288,8 +319,8 @@ export default function ExamRun({
             )}
           </div>
           <div className="actions exam-hand-in">
-            <button type="button" className="button" onClick={() => setReviewing(true)}>
-              Hand in
+            <button type="button" className="button" onClick={openReview}>
+              Review &amp; hand in
             </button>
           </div>
 
@@ -308,7 +339,7 @@ export default function ExamRun({
                       className={`overview-item ${done ? 'answered' : ''} ${flagged ? 'marked' : ''}`}
                       aria-current={i === index ? 'step' : undefined}
                       aria-label={`Question ${i + 1}, ${done ? 'answered' : 'not answered'}${flagged ? ', marked' : ''}`}
-                      onClick={() => setIndex(i)}
+                      onClick={() => jumpTo(i)}
                     >
                       {i + 1}
                       {flagged && (

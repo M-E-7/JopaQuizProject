@@ -1,4 +1,5 @@
 import type { RefObject } from 'react'
+import { needsAttention } from '../exam.ts'
 import type { QuizQuestion } from '../quiz/types.ts'
 
 /** "attention" lists marked and unanswered questions first, each group in exam order. */
@@ -36,8 +37,8 @@ export default function ExamReview({
     answered: chosen.has(question.id),
     flagged: marked.has(question.id),
   }))
-  const needsAttention = (r: (typeof rows)[number]) => r.flagged || !r.answered
-  const shown = order === 'exam' ? rows : [...rows.filter(needsAttention), ...rows.filter((r) => !needsAttention(r))]
+  const attention = (r: (typeof rows)[number]) => needsAttention(r.question.id, chosen, marked)
+  const shown = order === 'exam' ? rows : [...rows.filter(attention), ...rows.filter((r) => !attention(r))]
 
   return (
     <section className="review" aria-labelledby="review-heading">

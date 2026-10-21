@@ -2,6 +2,14 @@
 
 Newest first.
 
+## 2026-10-21
+
+- Exam: getting back from marked questions without pressing Next on every question
+  - Problem (user): after opening a marked question from the review page, the only way back was Next through every following question
+  - User's choice from the options discussed (Back-to-review button, step through, auto-return, rename): **step through + rename**. A question opened from the review page starts a check pass: the primary button is "Next to check" (next marked or unanswered question after it, exam order; worked out live, so answering/unmarking takes a question out), then "Back to review" after the last. Marking during the pass moves to the next one to check. A grid jump or opening the review ends the pass; Previous keeps it. The bottom "Hand in" button (which only opens the review) is now "Review & hand in"
+  - `needsAttention()` moved to `exam.ts`, shared by `ExamRun.tsx` and `ExamReview.tsx`. In memory only, no data change
+  - Verified: build + lint pass; dev server, 10-question exam with Q2 + Q5 marked and Q8 unanswered: review → Q2 "Next to check" → (answer + unmark Q2) → Q5 → Previous to Q4 keeps "Next to check" → Q5 → Q8 "Back to review" → review; Q3 (answered) from review → Mark → jumps to Q5; grid jump → plain Next; "Review & hand in" opens the review, browser Back returns to the question; 375px: "Back to review" wraps to two lines, the row stays even, no sideways scroll; no console errors. Not checked: a real phone
+
 ## 2026-10-19
 
 - "Retry missed questions" mode

@@ -4,7 +4,7 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-19 (Retry missed questions - section 5).
+Last updated: 2026-10-21 (Exam: "Review & hand in", "Next to check" - section 4).
 
 Contents
   1. What is where
@@ -174,12 +174,14 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
      answer; you can change answers and move with Previous / Next or the
      "Questions: N of M answered" grid. "Mark" flags a question to come
      back to later and moves on (tap "Marked" to unmark; you can mark a
-     question you've answered too). "Hand in" (or "Review" on the last
-     question) opens a review page with every question - answered, not
-     answered, marked - which you can sort by "Needs attention first";
-     tap a row to go back to it. "Hand in" there ends the exam (it asks
-     first if some are unanswered or still marked); at 0:00 it is handed
-     in automatically. Unanswered questions count as wrong.
+     question you've answered too). "Review & hand in" (or "Review" on
+     the last question) opens a review page with every question -
+     answered, not answered, marked - which you can sort by "Needs
+     attention first"; tap a row to go back to it. From there "Next to
+     check" jumps to the next marked or unanswered question, and "Back to
+     review" returns after the last one. "Hand in" on the review page
+     ends the exam (it asks first if some are unanswered or still
+     marked); at 0:00 it is handed in automatically. Unanswered questions count as wrong.
    - Missed questions ("Retry missed"): only the questions you got wrong
      or left unanswered the last time you saw them, checked at once like
      Study. Answer one right and it drops off the list; get it wrong again
