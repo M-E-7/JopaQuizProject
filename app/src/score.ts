@@ -73,6 +73,39 @@ export function stillMissedIds(runs: QuizRun[], questionIds: ReadonlySet<string>
   return new Set([...latest].filter(([, correct]) => !correct).map(([id]) => id))
 }
 
+/** Learned count at which Study stops asking a question. */
+export const LEARNED_AFTER = 3
+
+/** A question's learned count after one more answer: right +1, wrong −1, never below 0. */
+export function nextLearnedCount(count: number, correct: boolean): number {
+  return Math.max(0, count + (correct ? 1 : -1))
+}
+
+/**
+ * Learned count of each of the set's questions that was answered in a Study or
+ * Retry run (`runs` oldest first). Exam answers don't count; with a reset, only
+ * runs saved after it (id above `resetAfterRunId`) do.
+ */
+export function learnedCounts(
+  runs: QuizRun[],
+  questionIds: ReadonlySet<string>,
+  resetAfterRunId?: number,
+): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const run of runs) {
+    if (runMode(run) === 'exam' || (resetAfterRunId !== undefined && run.id <= resetAfterRunId)) continue
+    for (const { questionId, correct } of currentResults(run.results, questionIds)) {
+      counts.set(questionId, nextLearnedCount(counts.get(questionId) ?? 0, correct))
+    }
+  }
+  return counts
+}
+
+/** Ids whose learned count has reached `LEARNED_AFTER`: Study leaves them out. */
+export function learnedIds(counts: ReadonlyMap<string, number>): Set<string> {
+  return new Set([...counts].filter(([, count]) => count >= LEARNED_AFTER).map(([id]) => id))
+}
+
 export interface HistorySummary {
   /** Runs that still have questions in the set. */
   count: number

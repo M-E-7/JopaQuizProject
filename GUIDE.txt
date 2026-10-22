@@ -4,7 +4,7 @@ JOPAQUIZ - HOW-TO GUIDE (for the owner)
 Short reminders for the everyday processes: making quizzes with Claude,
 getting them onto devices, updating the app. Not about using the app itself.
 
-Last updated: 2026-10-21 (Exam: "Review & hand in", "Next to check" - section 4).
+Last updated: 2026-10-22 (Study skips learned questions, "Reset learned questions" - section 4).
 
 Contents
   1. What is where
@@ -166,8 +166,13 @@ a typo. Don't change question ids. Run validate-quiz afterwards.
    replace a newer version with an older one. Your score history is kept.
 
 4. Playing: "Start" next to a quiz, then pick a mode:
-   - Study: all questions. Tap an answer - it counts at once (no undo), the
-     right one turns green and the explanation appears; "Next".
+   - Study: the questions you haven't learned yet. Tap an answer - it counts
+     at once (no undo), the right one turns green and the explanation
+     appears; "Next". A question is "learned" after 3 right answers in Study
+     or Retry missed (each wrong one takes one away; Exam answers don't
+     count) and then stays out of Study. The Study panel shows "N to study ·
+     K learned"; "Reset learned questions" puts them all back (your score
+     history is kept).
    - Exam: a random pick of questions with a time limit (default 20
      questions and 20 minutes; change both on that screen, the app
      remembers them per quiz on that device). Nothing is marked while you

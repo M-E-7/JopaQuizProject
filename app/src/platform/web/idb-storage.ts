@@ -3,13 +3,15 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 import type { ExamSettings, QuizRun, QuizSetSummary, QuizStorage, StoredQuizSet } from '../types.ts'
 
 const DB_NAME = 'jopa-quiz'
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 interface QuizDB extends DBSchema {
   quizSets: { key: string; value: StoredQuizSet }
   runs: { key: number; value: QuizRun; indexes: { byQuiz: string } }
   /** Since v2. */
   examSettings: { key: string; value: ExamSettings & { quizId: string } }
+  /** Since v3. */
+  learnedResets: { key: string; value: { quizId: string; afterRunId: number } }
 }
 
 export function createIdbStorage(): QuizStorage {
@@ -31,6 +33,11 @@ export function createIdbStorage(): QuizStorage {
         // `questionIds` and are read as Study runs, so they need no conversion.
         if (oldVersion < 2) {
           db.createObjectStore('examSettings', { keyPath: 'quizId' })
+        }
+        // v3 (learned questions): new store only. A set without a reset counts
+        // all its history, so existing data needs no conversion.
+        if (oldVersion < 3) {
+          db.createObjectStore('learnedResets', { keyPath: 'quizId' })
         }
       },
       // A newer app version in another window wants to upgrade: let it.
@@ -72,11 +79,12 @@ export function createIdbStorage(): QuizStorage {
     },
 
     async deleteQuizSet(id) {
-      const tx = (await db()).transaction(['quizSets', 'runs', 'examSettings'], 'readwrite')
+      const tx = (await db()).transaction(['quizSets', 'runs', 'examSettings', 'learnedResets'], 'readwrite')
       const runKeys = await tx.objectStore('runs').index('byQuiz').getAllKeys(id)
       await Promise.all([
         tx.objectStore('quizSets').delete(id),
         tx.objectStore('examSettings').delete(id),
+        tx.objectStore('learnedResets').delete(id),
         ...runKeys.map((key) => tx.objectStore('runs').delete(key)),
         tx.done,
       ])
@@ -99,6 +107,14 @@ export function createIdbStorage(): QuizStorage {
 
     async saveExamSettings(quizId, settings) {
       await (await db()).put('examSettings', { quizId, ...settings })
+    },
+
+    async getLearnedReset(quizId) {
+      return (await (await db()).get('learnedResets', quizId))?.afterRunId
+    },
+
+    async saveLearnedReset(quizId, afterRunId) {
+      await (await db()).put('learnedResets', { quizId, afterRunId })
     },
 
     requestPersistence,

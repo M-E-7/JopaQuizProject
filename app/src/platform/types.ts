@@ -76,7 +76,7 @@ export interface QuizStorage {
   getQuizSet(id: string): Promise<StoredQuizSet | undefined>
   /** Adds the set, or replaces the stored set with the same `quiz.id`. Its history is kept. */
   saveQuizSet(set: StoredQuizSet): Promise<void>
-  /** Deletes the set, its run history and its exam settings. */
+  /** Deletes the set, its run history, its exam settings and its learned reset. */
   deleteQuizSet(id: string): Promise<void>
   /** Stores a finished run and returns its id. */
   addRun(run: Omit<QuizRun, 'id'>): Promise<number>
@@ -85,6 +85,12 @@ export interface QuizStorage {
   /** The set's saved exam settings, or undefined if none were saved yet. */
   getExamSettings(quizId: string): Promise<ExamSettings | undefined>
   saveExamSettings(quizId: string, settings: ExamSettings): Promise<void>
+  /**
+   * Id of the set's last run when its learned questions were reset (only later
+   * runs count towards "learned"), or undefined if never reset.
+   */
+  getLearnedReset(quizId: string): Promise<number | undefined>
+  saveLearnedReset(quizId: string, afterRunId: number): Promise<void>
   /** Asks the browser not to evict stored data. Returns whether storage is persistent. */
   requestPersistence(): Promise<boolean>
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { ExamRunInfo, QuizMode } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
-import { formatDate, formatDuration } from '../format.ts'
+import { formatDate, formatDuration, plural } from '../format.ts'
 import { countResults, scorePercent, type Answer, type RunScore } from '../score.ts'
 import SourceReference from './SourceReference.tsx'
 
@@ -22,6 +22,7 @@ export default function QuizSummary({
   questions,
   answers,
   previous,
+  learnedCount = 0,
   saveError,
   retryCount,
   onRetryMissed,
@@ -37,13 +38,18 @@ export default function QuizSummary({
   answers: Answer[]
   /** The set's previous saved run of the same mode, shown as "Last time". */
   previous?: RunScore
+  /** Study / Retry: questions this run brought to the learned count. */
+  learnedCount?: number
   /** Set if this run couldn't be saved. */
   saveError?: string
   /** Still-missed questions in the set once this run is saved; no Retry button while undefined or 0. */
   retryCount?: number
   onRetryMissed: () => void
-  /** Same mode again (not offered after a retry: its next round is Retry missed). */
-  onRestart: () => void
+  /**
+   * Same mode again (not offered after a retry: its next round is Retry missed;
+   * nor when undefined, a Study run with nothing left to ask).
+   */
+  onRestart?: () => void
   onBackToList: () => void
 }) {
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -80,6 +86,12 @@ export default function QuizSummary({
           </p>
         )}
         {exam?.timedOut && <p>Time ran out — the exam was handed in automatically.</p>}
+        {learnedCount > 0 && (
+          <p>
+            {plural(learnedCount, 'question')} learned this run — {learnedCount === 1 ? 'it' : 'they'} won't come up in
+            Study again.
+          </p>
+        )}
         {previous && (
           <p className="muted">
             Last time: {previous.percent}% ({previous.correct} of {previous.total}) · {formatDate(previous.finishedAt)}
@@ -111,7 +123,7 @@ export default function QuizSummary({
       )}
 
       <div className="actions">
-        {mode !== 'retry' && (
+        {mode !== 'retry' && onRestart && (
           <button type="button" className="button primary" onClick={onRestart}>
             Start again
           </button>

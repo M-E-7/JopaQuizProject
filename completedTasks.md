@@ -2,6 +2,14 @@
 
 Newest first.
 
+## 2026-10-22
+
+- Learned questions in Study
+  - User's choices (Q&A): answers in **Study and Retry missed** count towards a question's learned count — right +1, wrong −1 (never below 0, no cap); **Exam answers don't count**; existing history counts too. Learned = count ≥ 3 (`LEARNED_AFTER`, fixed for now; a Settings section will make it configurable — Phase 4 task). Only Study leaves learned questions out (Exam picks from all; Retry keeps its still-missed list). Reset is for the whole set, on the mode choice's Study panel, confirmed; history untouched
+  - UI: Study panel "N to study · K learned" + "Reset learned questions"; all learned → "All questions in this set are learned.", Start study disabled; "✓ Learned — it won't come up in Study again." in the feedback of the answer that reaches 3; summary "K questions learned this run"; no Start again when nothing is left to study; a reload into an empty Study run shows a message + Back
+  - `score.ts`: `LEARNED_AFTER`, `nextLearnedCount`, `learnedCounts(runs, ids, resetAfterRunId?)`, `learnedIds`. DB v3: new store `learnedResets` (`{ quizId, afterRunId }`: only runs with a higher id count; run ids only grow, so no clock dependence), kept on replace, deleted with the set
+  - Verified: build + lint pass; dev server with a hand-made v2 database (set + 4 runs incl. an old run without `mode` and an exam with a wrong answer): opened as v3 with data intact, "3 to study · 2 learned" as expected (exam answer ignored); Study all right → three "Learned ✓", summary "3 questions learned this run", no Start again; Retry with a wrong answer → back to "1 to study"; last one learned → all learned, Start study disabled; reload on the Study run → "All questions … learned" + Back; Reset (confirm) → "5 to study · 0 learned", 7 runs kept, survives a reload and a replace; Delete removes the reset; no console errors. Not checked: a real phone
+
 ## 2026-10-21
 
 - Exam: getting back from marked questions without pressing Next on every question

@@ -2,19 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { OPTION_LETTERS } from '../format.ts'
 import type { QuestionResult, QuizRun } from '../platform/index.ts'
 import type { QuizQuestion, QuizSet } from '../quiz/types.ts'
-import { countResults, type Answer, type RunScore } from '../score.ts'
+import { countResults, LEARNED_AFTER, nextLearnedCount, type Answer, type RunScore } from '../score.ts'
 import { shuffleQuestions } from '../shuffle.ts'
 import QuizSummary from './QuizSummary.tsx'
 import SourceReference from './SourceReference.tsx'
 
 /**
- * Study mode: every question, each answer checked at once with the explanation
- * and source. Retry mode is the same with only the set's still-missed questions.
+ * Study mode: the questions not learned yet, each answer checked at once with the
+ * explanation and source. Retry mode is the same with only the set's still-missed questions.
  */
 export default function StudyRun({
   quiz,
   mode,
   questions: toAsk,
+  learnedCounts,
   previous,
   saveRun,
   missedCount,
@@ -26,8 +27,10 @@ export default function StudyRun({
 }: {
   quiz: QuizSet
   mode: 'study' | 'retry'
-  /** The questions to ask: all of them, or the still-missed ones for a retry. Read at mount. */
+  /** The questions to ask: the ones not learned yet, or the still-missed ones for a retry. Read at mount. */
   questions: QuizQuestion[]
+  /** Learned count per question before this run. Read at mount. */
+  learnedCounts: ReadonlyMap<string, number>
   /** The set's latest saved run of this mode, for "Last time". Read at mount. */
   previous: RunScore | undefined
   saveRun: (run: Omit<QuizRun, 'id'>) => Promise<void>
@@ -36,12 +39,14 @@ export default function StudyRun({
   onRetryMissed: () => void
   onQuit: () => void
   onBackToList: () => void
-  onRestart: () => void
+  /** Undefined when a new Study run would have nothing to ask. */
+  onRestart?: () => void
   onLeaveGuardChange: (needed: boolean) => void
 }) {
   /** This run's order of questions and options; Start again remounts, so it reshuffles. */
   const [questions] = useState(() => shuffleQuestions(toAsk))
   const [lastTime] = useState(previous)
+  const [countsBefore] = useState(learnedCounts)
   const [index, setIndex] = useState(0)
   /** Option picked for the current question; set means answered. */
   const [chosen, setChosen] = useState<number>()
@@ -54,6 +59,11 @@ export default function StudyRun({
 
   const total = questions.length
   const finished = index >= total
+  /** Each question is asked once per run, so its count before the run plus this answer decides. */
+  const becameLearned = (a: QuestionResult) => {
+    const before = countsBefore.get(a.questionId) ?? 0
+    return before < LEARNED_AFTER && nextLearnedCount(before, a.correct) >= LEARNED_AFTER
+  }
 
   useEffect(() => {
     onLeaveGuardChange(answers.length > 0 && !finished)
@@ -100,13 +110,18 @@ export default function StudyRun({
     )
   }
 
-  // A reload (or Back/Forward) can land on a retry with nothing left to retry.
+  // A reload (or Back/Forward) can land on a retry with nothing left to retry,
+  // or on Study with every question learned.
   if (total === 0) {
     return (
       <section className="quiz">
         <p className="muted quiz-title">{quiz.title}</p>
         <div className="panel">
-          <p>No missed questions to retry right now.</p>
+          <p>
+            {mode === 'retry'
+              ? 'No missed questions to retry right now.'
+              : 'All questions in this set are learned. Reset them on the previous screen to study them again.'}
+          </p>
           <div className="actions">
             <button type="button" className="button" onClick={onQuit}>
               Back
@@ -125,6 +140,7 @@ export default function StudyRun({
         questions={questions}
         answers={answers}
         previous={lastTime}
+        learnedCount={answers.filter(becameLearned).length}
         saveError={saveError}
         // Counted once this run is stored, so it includes this run's answers.
         retryCount={saved ? missedCount : undefined}
@@ -138,6 +154,7 @@ export default function StudyRun({
   const question = questions[index]
   const answered = chosen !== undefined
   const correct = chosen === question.correctIndex
+  const learnedNow = answered && becameLearned({ questionId: question.id, correct })
 
   return (
     <section className="quiz">
@@ -210,6 +227,14 @@ export default function StudyRun({
               {!correct && ' — the correct answer is marked.'}
             </p>
             <p className="explanation">{question.explanation}</p>
+            {learnedNow && (
+              <p>
+                <strong>
+                  <span aria-hidden="true">✓</span> Learned
+                </strong>{' '}
+                — it won't come up in Study again.
+              </p>
+            )}
           </div>
           <SourceReference reference={question.reference} sources={quiz.sources} />
           <div className="actions">

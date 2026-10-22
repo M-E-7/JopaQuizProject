@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { examSettingsFor } from '../exam.ts'
 import { platform, type ExamSettings, type QuizMode, type QuizRun } from '../platform/index.ts'
 import type { QuizSet } from '../quiz/types.ts'
-import { historySummary, stillMissedIds } from '../score.ts'
+import { historySummary, learnedCounts, learnedIds, stillMissedIds } from '../score.ts'
 import ExamRun from './ExamRun.tsx'
 import ModeChoice from './ModeChoice.tsx'
 import StudyRun from './StudyRun.tsx'
@@ -44,6 +44,8 @@ export default function QuizScreen({
   const [runs, setRuns] = useState<QuizRun[]>([])
   /** Settings picked on the mode choice in this visit; until then the stored ones. */
   const [pickedSettings, setPickedSettings] = useState<ExamSettings>()
+  /** Last run id when the learned questions were reset; only later runs count. */
+  const [resetAfter, setResetAfter] = useState<number>()
   /** Bumped by "Start again": a new key remounts the run with fresh state. */
   const [attempt, setAttempt] = useState(0)
 
@@ -53,9 +55,11 @@ export default function QuizScreen({
       platform.storage.getExamSettings(quizId),
       // Without the history there's just no "Last time" and nothing to retry.
       platform.storage.listRuns(quizId).catch((): QuizRun[] => []),
+      platform.storage.getLearnedReset(quizId).catch(() => undefined),
     ]).then(
-      ([stored, settings, storedRuns]) => {
+      ([stored, settings, storedRuns, reset]) => {
         setRuns(storedRuns)
+        setResetAfter(reset)
         setLoad(
           stored
             ? {
@@ -93,6 +97,17 @@ export default function QuizScreen({
   const questionIds = new Set(quiz.questions.map((q) => q.id))
   const missedIds = stillMissedIds(runs, questionIds)
   const missed = quiz.questions.filter((q) => missedIds.has(q.id))
+  const counts = learnedCounts(runs, questionIds, resetAfter)
+  const learned = learnedIds(counts)
+  const toStudy = quiz.questions.filter((q) => !learned.has(q.id))
+
+  /** Every question back into Study; the history itself stays. */
+  async function resetLearned() {
+    const lastRun = runs.at(-1)
+    if (!lastRun) return
+    await platform.storage.saveLearnedReset(quizId, lastRun.id)
+    setResetAfter(lastRun.id)
+  }
 
   function startExam(settings: ExamSettings) {
     setPickedSettings(settings)
@@ -124,7 +139,17 @@ export default function QuizScreen({
   // The mode is in the key so a Study run's summary → Retry mounts a fresh StudyRun.
   const key = `${mode}-${attempt}`
   if (mode === 'study' || mode === 'retry') {
-    return <StudyRun key={key} mode={mode} questions={mode === 'retry' ? missed : quiz.questions} {...runProps} />
+    return (
+      <StudyRun
+        key={key}
+        mode={mode}
+        questions={mode === 'retry' ? missed : toStudy}
+        learnedCounts={counts}
+        {...runProps}
+        // No Start again into a Study run with every question learned.
+        onRestart={mode === 'study' && toStudy.length === 0 ? undefined : restart}
+      />
+    )
   }
   if (mode === 'exam') return (
       <ExamRun key={key} settings={examSettings} onBackOverrideChange={onBackOverrideChange} {...runProps} />
@@ -134,6 +159,9 @@ export default function QuizScreen({
       quiz={quiz}
       examSettings={examSettings}
       missedCount={missed.length}
+      studyCount={toStudy.length}
+      learnedCount={learned.size}
+      onResetLearned={resetLearned}
       onStudy={() => onChooseMode('study')}
       onExam={startExam}
       onRetry={() => onChooseMode('retry')}

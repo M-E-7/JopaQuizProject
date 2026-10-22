@@ -3,15 +3,21 @@ import { MAX_EXAM_MINUTES } from '../exam.ts'
 import { plural } from '../format.ts'
 import type { ExamSettings } from '../platform/index.ts'
 import type { QuizSet } from '../quiz/types.ts'
+import { LEARNED_AFTER } from '../score.ts'
+import ConfirmDialog from './ConfirmDialog.tsx'
 
 /**
- * After Start: Study, Exam with its settings (question count and minutes,
- * adjustable here), or Retry of the still-missed questions.
+ * After Start: Study of the questions not learned yet (with a reset), Exam with
+ * its settings (question count and minutes, adjustable here), or Retry of the
+ * still-missed questions.
  */
 export default function ModeChoice({
   quiz,
   examSettings,
   missedCount,
+  studyCount,
+  learnedCount,
+  onResetLearned,
   onStudy,
   onExam,
   onRetry,
@@ -22,6 +28,11 @@ export default function ModeChoice({
   examSettings: ExamSettings
   /** Questions whose latest answer was wrong or not given. */
   missedCount: number
+  /** Questions Study asks: the ones not learned yet. */
+  studyCount: number
+  learnedCount: number
+  /** Puts every learned question back into Study (after the confirmation here). */
+  onResetLearned: () => Promise<void>
   onStudy: () => void
   onExam: (settings: ExamSettings) => void
   onRetry: () => void
@@ -31,12 +42,20 @@ export default function ModeChoice({
   // Kept as typed, so a field can be empty while editing.
   const [count, setCount] = useState(String(examSettings.questionCount))
   const [minutes, setMinutes] = useState(String(examSettings.timeLimitMinutes))
+  const [confirmingReset, setConfirmingReset] = useState(false)
+  const [resetError, setResetError] = useState<string>()
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
     window.scrollTo(0, 0)
     headingRef.current?.focus({ preventScroll: true })
   }, [])
+
+  function resetLearned() {
+    setConfirmingReset(false)
+    setResetError(undefined)
+    onResetLearned().catch((e: Error) => setResetError(e.message))
+  }
 
   const questionCount = wholeNumber(count, 1, available)
   const timeLimitMinutes = wholeNumber(minutes, 1, MAX_EXAM_MINUTES)
@@ -62,13 +81,44 @@ export default function ModeChoice({
 
       <section className="panel mode" aria-labelledby="study-heading">
         <h2 id="study-heading">Study</h2>
-        <p>All questions. Each answer is checked at once, with the explanation and the source.</p>
+        {studyCount > 0 ? (
+          <p>The questions you haven't learned yet. Each answer is checked at once, with the explanation and the source.</p>
+        ) : (
+          <p>All questions in this set are learned.</p>
+        )}
+        <p className="muted">
+          {studyCount} to study · {learnedCount} learned. A question is learned after {LEARNED_AFTER} correct answers
+          (a wrong one takes one away) and then stays out of Study.
+        </p>
+        {resetError && (
+          <p className="panel error" role="alert">
+            Couldn't reset the learned questions: {resetError}
+          </p>
+        )}
         <div className="actions">
-          <button type="button" className="button primary" onClick={onStudy}>
+          <button type="button" className="button primary" disabled={studyCount === 0} onClick={onStudy}>
             Start study
           </button>
+          {learnedCount > 0 && (
+            <button type="button" className="button" onClick={() => setConfirmingReset(true)}>
+              Reset learned questions
+            </button>
+          )}
         </div>
       </section>
+      <ConfirmDialog
+        open={confirmingReset}
+        confirmLabel="Reset"
+        cancelLabel="Keep them"
+        danger
+        onConfirm={resetLearned}
+        onCancel={() => setConfirmingReset(false)}
+      >
+        <p>
+          Reset learned questions? All {plural(learnedCount, 'question')} come back into Study and count from 0 again.
+          Your score history is kept.
+        </p>
+      </ConfirmDialog>
 
       <form className="panel mode" aria-labelledby="exam-heading" onSubmit={startExam} noValidate>
         <h2 id="exam-heading">Exam</h2>
